@@ -18,6 +18,10 @@ Press `i` during playback for statistics (dropped frames, decoder, and so on) wh
 - Check the file names: `Movie Name (2014).mkv`, `Show Name S01E02.mkv`. Right-click a wrong match and choose **Edit metadata...**.
 - Some networks block `api.themoviedb.org`. Lumina automatically retries on TMDB's alias `api.tmdb.org`; if both are blocked, use a VPN or another DNS server.
 
+## A show appears under Movies
+
+Lumina recognises episodes from `S01E02` or `1x02` in the name, from season folders (`Season 2`, `S03`, `Specials`), from names like `Episode 12`, `Ep 03` or `E05`, and from folders of three or more files numbered `01`, `02`, `03`. If a show still lands in Movies, right-click it and choose **This is a TV show, not a movie**. Naming files `Show Name/Season 1/Show Name - S01E01.mkv` always works.
+
 ## No subtitles found
 
 Add an OpenSubtitles key in **Settings, Accounts**, check **Settings, Subtitles, Preferred languages**, and press `Ctrl+B` in the player to see the list of matches.

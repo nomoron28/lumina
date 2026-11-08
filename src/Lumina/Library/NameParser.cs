@@ -46,6 +46,15 @@ public static partial class NameParser
             return new Parsed("show", show, showYear, 1, int.Parse(le.Groups[1].Success ? le.Groups[1].Value : le.Groups[2].Value));
         }
 
+        return Movie(s);
+    }
+
+    /// <summary>The name read as a film, whatever episode tags it has: for a file the user said is a movie.</summary>
+    public static Parsed AsMovie(string fileNameNoExt) =>
+        Movie(Regex.Replace(fileNameNoExt.Replace('.', ' ').Replace('_', ' '), @"\[[^\]]*\]", " "));
+
+    static Parsed Movie(string s)
+    {
         // Last plausible year that is not the very start, so 2012 and 1917 stay titles.
         Match? ym = null;
         foreach (Match m in Year().Matches(s)) if (m.Index > 0) ym = m;

@@ -14,14 +14,19 @@ public static class Scanner
     {
         // After the name rules change, every file is read again once, so old titles ("Beef 2023") get the new form ("Beef", 2023) and are matched again
         var reparse = Db.KvGet("parse_v") != ParseVersion;
-        var n = Db.Roots().Sum(r => Scan(r, reparse));
+        var overrides = Db.KindOverrides();
+        var n = Db.Roots().Sum(r => Scan(r, overrides, reparse));
         if (reparse) Db.KvSet("parse_v", ParseVersion);
         return n;
     }
 
     const string ParseVersion = "3";   // 3: season folders and numbered folders make shows (issue #1)
 
-    static int Scan(string root, bool reparse = false)
+    /// <summary>What the user said this file is: its own setting first, then its folder's. Null when they said nothing.</summary>
+    static string? Forced(Dictionary<string, string> overrides, string file) =>
+        overrides.TryGetValue(file, out var k) ? k : overrides.TryGetValue(Path.GetDirectoryName(file) ?? "", out k) ? k : null;
+
+    static int Scan(string root, Dictionary<string, string> overrides, bool reparse = false)
     {
         // Offline NAS or unplugged drive: keep its rows instead of wiping them.
         if (!Directory.Exists(root)) return 0;
@@ -31,7 +36,8 @@ public static class Scanner
         {
             if (!Ext.Contains(Path.GetExtension(f))) continue;
             var fi = new FileInfo(f);
-            var p = InSeasonFolder(f, root, NameParser.Parse(Path.GetFileNameWithoutExtension(f)));
+            var name = Path.GetFileNameWithoutExtension(f);
+            var p = Forced(overrides, f) == "movie" ? NameParser.AsMovie(name) : InSeasonFolder(f, root, NameParser.Parse(name));
             // A bare S01E02.mkv inside Show Name/Season 1/ takes the show from the folder.
             if (p.Title.Length == 0)
             {
@@ -43,8 +49,28 @@ public static class Scanner
             if (p.Title.Length == 0) p = p with { Title = Path.GetFileNameWithoutExtension(f) };
             found.Add(new Found(f, fi.Length, fi.LastWriteTimeUtc.Ticks, p));
         }
-        NumberedFolders(found, root);
+        NumberedFolders(found, root, overrides);
+        ForcedShows(found, root, overrides);
         return Db.SyncRoot(root, found, reparse);
+    }
+
+    /// <summary>Files the user said are a show but whose names say nothing of episodes: numbered in name order, season from the folder or 1.</summary>
+    static void ForcedShows(List<Found> found, string root, Dictionary<string, string> overrides)
+    {
+        foreach (var g in found.Select((x, i) => (x, i)).Where(t => t.x.P.Kind == "movie" && Forced(overrides, t.x.Path) == "show")
+                     .GroupBy(t => Path.GetDirectoryName(t.x.Path) ?? ""))
+        {
+            var season = NameParser.SeasonFolder(Path.GetFileName(g.Key));
+            var showDir = season != null ? Path.GetDirectoryName(g.Key) ?? g.Key : g.Key;
+            var (title, year) = IsRoot(showDir, root) ? (g.First().x.P.Title, g.First().x.P.Year) : NameParser.SplitYear(Path.GetFileName(showDir));
+            var n = 0;
+            foreach (var (x, i) in g.OrderBy(t => Path.GetFileName(t.x.Path), StringComparer.OrdinalIgnoreCase))
+            {
+                n++;
+                var ep = NameParser.LooseEpisode(Path.GetFileNameWithoutExtension(x.Path), title) ?? n;
+                found[i] = x with { P = new Parsed("show", title, year, season ?? 1, ep) };
+            }
+        }
     }
 
     static bool IsRoot(string dir, string root) =>
@@ -63,9 +89,9 @@ public static class Scanner
     }
 
     /// <summary>Three or more files in one folder numbered 01, 02, 03 ("Anime Title 01.mkv") are a show's episodes.</summary>
-    static void NumberedFolders(List<Found> found, string root)
+    static void NumberedFolders(List<Found> found, string root, Dictionary<string, string> overrides)
     {
-        foreach (var g in found.Select((x, i) => (x, i)).Where(t => t.x.P.Kind == "movie" && t.x.P.Year == null)
+        foreach (var g in found.Select((x, i) => (x, i)).Where(t => t.x.P.Kind == "movie" && t.x.P.Year == null && Forced(overrides, t.x.Path) == null)
                      .GroupBy(t => Path.GetDirectoryName(t.x.Path) ?? ""))
         {
             if (g.Key.Length == 0 || IsRoot(g.Key, root)) continue;

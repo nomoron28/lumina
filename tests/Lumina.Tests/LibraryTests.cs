@@ -129,6 +129,36 @@ public class DbTests : IDisposable
     }
 
     [Fact]
+    public void TheUserCanSayAFolderIsAShowAndAFileIsAMovie()
+    {
+        var lib = Path.Combine(_dir, "mixed");
+        var showDir = Path.Combine(lib, "Some Show");
+        Directory.CreateDirectory(showDir);
+        File.WriteAllText(Path.Combine(showDir, "Some Show Pilot.mkv"), "x");
+        File.WriteAllText(Path.Combine(showDir, "Some Show The Second One.mkv"), "x");
+        var film = Path.Combine(lib, "Weird.Film.S01E01.mkv");
+        File.WriteAllText(film, "x");
+        Db.Init();
+        Db.AddRoot(lib);
+        Scanner.ScanAll();
+        Assert.Equal(2, Db.List().Count(i => i.Kind == "movie"));
+
+        Db.SetKind(new[] { showDir }, "show");
+        Db.SetKind(new[] { film }, "movie");
+        Scanner.ScanAll();
+        var items = Db.List();
+        var eps = items.Where(i => i.Kind == "show").OrderBy(i => i.Episode).ToList();
+        Assert.Equal(2, eps.Count);
+        Assert.All(eps, e => Assert.Equal(("Some Show", (int?)1), (e.Title, e.Season)));
+        Assert.Equal(new int?[] { 1, 2 }, eps.Select(e => e.Episode).ToArray());
+        var m = Assert.Single(items, i => i.Kind == "movie");
+        Assert.Equal(film, m.Path);
+
+        Assert.Equal(0, Scanner.ScanAll());   // the choice sticks across rescans
+        Assert.Equal(2, Db.List().Count(i => i.Kind == "show"));
+    }
+
+    [Fact]
     public void AShowStoredWithItsYearInTheTitleIsFixedAndMatchedAgain()
     {
         var lib = Path.Combine(_dir, "tv");
