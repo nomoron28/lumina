@@ -20,7 +20,9 @@ local FONT_BOLD = "Garet Heavy"
 
 -- Set from Settings through script-opts=lumina-osc-<name>=<value>.
 local opt = { hide_ms = 2600, autohide = "always", skip = 10, click = "none", dclick = "fullscreen", wheel = "volume", controls = "chap+cc+audio+speed+queue+gear+snap", style = "classic", thumbs = "yes", theme = "dark", accent = "5CE1C6" }
+opt.font = "garet"
 require("mp.options").read_options(opt, "lumina-osc")
+if opt.font == "system" then FONT, FONT_BOLD = "Segoe UI", "Segoe UI" end     -- no Garet files (the public source has none)
 local HIDE_AFTER = opt.hide_ms / 1000
 
 -- Which optional buttons sit in the right cluster, left to right. Unknown names and repeats are dropped,
@@ -132,9 +134,12 @@ local function shape(path, color, a)
 end
 
 local function text(x, y, s, size, color, a, anchor, bold, face)
-    local family = (bold or face == FONT_BOLD) and FONT_BOLD or (face or FONT)
-    L[#L + 1] = string.format("{\\an%d\\pos(%.1f,%.1f)\\fn%s\\fs%.1f\\b0\\bord0\\shad0\\3a&HFF&\\4a&HFF&\\1c&H%s&\\1a%s}%s",
-        anchor or 7, x, y, family, size, color, alpha(a), s)
+    local is_bold = bold or face == FONT_BOLD
+    local family = is_bold and FONT_BOLD or (face or FONT)
+    -- Garet Heavy is its own family (bold is a different font file); the Segoe UI fallback has to ask for bold instead
+    local flag = (opt.font == "system" and is_bold) and 1 or 0
+    L[#L + 1] = string.format("{\\an%d\\pos(%.1f,%.1f)\\fn%s\\fs%.1f\\b%d\\bord0\\shad0\\3a&HFF&\\4a&HFF&\\1c&H%s&\\1a%s}%s",
+        anchor or 7, x, y, family, size, flag, color, alpha(a), s)
 end
 
 local SCRIM_N = 44

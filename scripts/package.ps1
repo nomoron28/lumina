@@ -3,7 +3,7 @@
 #   Lumina-<version>-portable.zip   unzip anywhere; keeps its data in a "data" folder beside the program
 #   SHA256SUMS.txt                  checksums for both
 #   latest.json                     the file the in-app update check reads (upload it next to the installer)
-param([string]$Version, [switch]$SkipPublish, [switch]$SkipInstaller, [switch]$NoKeys)
+param([string]$Version, [switch]$SkipPublish, [switch]$SkipInstaller, [switch]$NoKeys, [switch]$NoFonts)
 $ErrorActionPreference = "Stop"
 $repo = Split-Path $PSScriptRoot -Parent
 Set-Location $repo
@@ -17,7 +17,7 @@ Write-Host "Packaging Lumina $Version"
 $pub = Join-Path $art "publish"
 if (-not $SkipPublish) {
     if (Test-Path $pub) { Remove-Item $pub -Recurse -Force }
-    dotnet publish src\Lumina -c Release -r win-x64 --self-contained true -o $pub -p:DebugType=none -p:DebugSymbols=false -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" -p:NoBakedKeys=$(if ($NoKeys) { "true" } else { "false" }) --nologo -v q
+    dotnet publish src\Lumina -c Release -r win-x64 --self-contained true -o $pub -p:DebugType=none -p:DebugSymbols=false -p:Version=$Version -p:AssemblyVersion="$Version.0" -p:FileVersion="$Version.0" -p:NoBakedKeys=$(if ($NoKeys) { "true" } else { "false" }) -p:NoFonts=$(if ($NoFonts) { "true" } else { "false" }) --nologo -v q
     if ($LASTEXITCODE -ne 0) { throw "publish failed" }
 }
 foreach ($must in "Lumina.exe", "libmpv-2.dll", "mpv.conf", "input.conf", "scripts\lumina-osc.lua") {
