@@ -1,0 +1,20 @@
+<Application x:Class="Lumina.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+                <!-- Lumina last, so its tokens and styles win over WPF-UI's. Order matters inside: Tokens, Controls, Templates. -->
+                <ResourceDictionary Source="Theme/Tokens.xaml" />
+                <ResourceDictionary Source="Theme/BrandMark.xaml" />
+                <ResourceDictionary Source="Theme/RatingLogos.xaml" />
+                <ResourceDictionary Source="Theme/Controls.xaml" />
+                <ResourceDictionary Source="Theme/Templates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

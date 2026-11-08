@@ -1,0 +1,25 @@
+<Window x:Class="Lumina.ConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        ShowInTaskbar="False" SizeToContent="Height" Width="460" MaxHeight="900" WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource Lumina.Font.Text}">
+    <!-- A soft shadow needs breathing room around the card, hence the outer margin. -->
+    <Grid Margin="24">
+        <Border CornerRadius="{StaticResource Lumina.Radius.Surface}" Background="{DynamicResource Lumina.Brush.SurfaceRaised}"
+                BorderThickness="1" BorderBrush="{DynamicResource Lumina.Brush.Border}" Padding="28,26,28,22">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="40" ShadowDepth="10" Opacity="0.55" Color="#000000" Direction="270" />
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock x:Name="TitleText" Style="{StaticResource Lumina.Text.Section}" TextWrapping="Wrap" />
+                <TextBlock x:Name="BodyText" Style="{StaticResource Lumina.Text.Muted}" TextWrapping="Wrap" Margin="0,10,0,0" LineHeight="21" />
+                <ContentPresenter x:Name="Extra" Margin="0,16,0,0" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+                    <Button x:Name="CancelBtn" Content="Cancel" Style="{StaticResource Lumina.Btn.Secondary}" Click="OnCancel" IsCancel="True" />
+                    <Button x:Name="OkBtn" Style="{StaticResource Lumina.Btn.Primary}" Click="OnOk" IsDefault="True" Margin="10,0,0,0" MinHeight="40" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

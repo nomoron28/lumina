@@ -1,0 +1,71 @@
+name: Release
+
+# Builds the installer and the portable zip and attaches them to a GitHub release.
+# Run it from the Actions tab (workflow_dispatch) or push a tag like v0.1.0.
+#
+# It needs a libmpv, which is not in the repository. Set the repository VARIABLE LIBMPV_URL to the direct download
+# of an archive (.7z or .zip) that contains libmpv-2.dll (x64), for example an mpv-dev-x86_64 build from
+# https://github.com/zhongfly/mpv-winbuild/releases . Check that build's licence before you publish: the release then
+# bundles it. Optionally set LIBMPV_SHA256 to pin the archive.
+#
+# Release builds never contain API keys (the build passes -NoKeys).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Get libmpv
+        shell: pwsh
+        env:
+          LIBMPV_URL: ${{ vars.LIBMPV_URL }}
+          LIBMPV_SHA256: ${{ vars.LIBMPV_SHA256 }}
+        run: |
+          if (-not $env:LIBMPV_URL) { throw "Set the repository variable LIBMPV_URL (see the comments at the top of this workflow)." }
+          $archive = Join-Path $env:RUNNER_TEMP ("libmpv" + [IO.Path]::GetExtension(($env:LIBMPV_URL -split '\?')[0]))
+          Invoke-WebRequest $env:LIBMPV_URL -OutFile $archive
+          if ($env:LIBMPV_SHA256) {
+            $got = (Get-FileHash $archive -Algorithm SHA256).Hash
+            if ($got -ne $env:LIBMPV_SHA256.ToUpper()) { throw "libmpv archive checksum mismatch: $got" }
+          }
+          $dest = Join-Path $env:RUNNER_TEMP "libmpv-extract"
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          7z x $archive "-o$dest" -y | Out-Null
+          $dll = Get-ChildItem $dest -Recurse -Filter libmpv-2.dll | Select-Object -First 1
+          if (-not $dll) { throw "libmpv-2.dll not found in the archive" }
+          New-Item -ItemType Directory -Force third_party/libmpv | Out-Null
+          Copy-Item $dll.FullName third_party/libmpv/libmpv-2.dll
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $env:Path += ";${env:ProgramFiles(x86)}\Inno Setup 6"
+          ./scripts/package.ps1 -NoKeys
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/Lumina-*-setup.exe
+            artifacts/Lumina-*-portable.zip
+            artifacts/SHA256SUMS.txt
+            artifacts/latest.json

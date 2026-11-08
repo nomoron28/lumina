@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x64</PlatformTarget>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Product>Lumina</Product>
+    <Company>Lumina</Company>
+    <Copyright>Lumina</Copyright>
+    <ApplicationIcon>..\..\assets\brand\app-icon\lumina.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.*" />
+    <PackageReference Include="WPF-UI" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- the Garet typeface is not in the public repository (its licence forbids redistributing the files on their own); without it the program uses Segoe UI -->
+    <Resource Include="Assets\Fonts\*.ttf" Condition="'$(NoFonts)' != 'true'" />
+    <Resource Include="..\..\assets\brand\app-icon\lumina.ico" Link="Assets\Brand\lumina.ico" />
+    <Resource Include="Assets\Ratings\*.png" />
+    <!-- API keys baked in at build time from a local, untracked file; absent in a fresh clone, and the program then asks users for their own -->
+    <EmbeddedResource Include="..\..\secrets.local.json" LogicalName="Lumina.baked-keys.json" Condition="'$(NoBakedKeys)' != 'true' And Exists('..\..\secrets.local.json')" />
+    <Resource Include="..\..\assets\brand\splash\splash-680x420.png" Link="Assets\Brand\splash.png" />
+    <Resource Include="..\..\assets\brand\tray-icon\lumina-tray-dark.ico" Link="Assets\Brand\lumina-tray-dark.ico" />
+    <Resource Include="..\..\assets\brand\tray-icon\lumina-tray-light.ico" Link="Assets\Brand\lumina-tray-light.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="mpv.conf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="input.conf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="scripts\lumina-osc.lua" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\third_party\libmpv\libmpv-2.dll" Link="libmpv-2.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\third_party\libmpv\libmpv-2.dll')" />
+  </ItemGroup>
+
+</Project>

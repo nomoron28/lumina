@@ -1,0 +1,23 @@
+<UserControl x:Class="Lumina.Shelf"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:app="clr-namespace:Lumina"
+             x:Name="Self">
+    <StackPanel Margin="0,0,0,34">
+        <Grid Margin="0,0,0,14">
+            <TextBlock Text="{Binding Title, ElementName=Self}" Style="{StaticResource Lumina.Text.Section}" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="SeeAllBtn" Content="See all" Style="{StaticResource Lumina.Btn.Link}" Click="OnSeeAll" Margin="0,0,10,0" />
+                <Button x:Name="LeftBtn" Style="{StaticResource Lumina.Btn.Icon}" Width="32" Height="32" Click="OnLeft" AutomationProperties.Name="Scroll left">
+                    <ui:SymbolIcon Symbol="ChevronLeft20" FontSize="16" />
+                </Button>
+                <Button x:Name="RightBtn" Style="{StaticResource Lumina.Btn.Icon}" Width="32" Height="32" Click="OnRight" Margin="6,0,0,0" AutomationProperties.Name="Scroll right">
+                    <ui:SymbolIcon Symbol="ChevronRight20" FontSize="16" />
+                </Button>
+            </StackPanel>
+        </Grid>
+        <ListBox x:Name="List" Style="{StaticResource Lumina.Shelf.List}" app:ScrollForward.Enabled="True"
+                 PreviewMouseLeftButtonUp="OnClick" KeyDown="OnKey" Padding="0,6,0,0" Margin="0,-6,0,0" />
+    </StackPanel>
+</UserControl>

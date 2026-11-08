@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build Lumina.sln -c Release --nologo
+
+      - name: Tests
+        # Tests that need libmpv or FFmpeg skip themselves when those are absent (they are not on the runner),
+        # so this covers the logic, database, settings, client and layout tests. The full gate runs locally.
+        run: dotnet test tests/Lumina.Tests -c Release --no-build --nologo
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Design tokens are fresh and pass contrast (dark and light)
+        run: |
+          python replica/design/build_wpf.py --check
+          python replica/design/contrast.py replica/design/tokens.json
+          python replica/design/contrast.py replica/design/tokens.json --theme light

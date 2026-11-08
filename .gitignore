@@ -1,0 +1,20 @@
+bin/
+obj/
+.vs/
+scratch/
+third_party/libmpv/
+VLC Redesign (Community)/
+*.user
+artifacts/
+secrets.local.json
+
+# not part of the public source
+src/Lumina/Assets/Fonts/*.ttf
+Logos/
+replica/screens/
+replica/recon.md
+replica/comparison.md
+replica/features-missing.md
+replica/roadmap.md
+replica/Lumina-brand-brief.md
+replica/deploy.md
