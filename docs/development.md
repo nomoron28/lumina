@@ -23,6 +23,15 @@ dotnet test
 
 Nearly a thousand xUnit tests cover name parsing, the database and its migrations, settings, the Trakt, TMDB and OpenSubtitles clients against fake servers, the shortcut and key logic, and the controller (drawing at many sizes, hit regions, drag and click behaviour, driven through a real headless libmpv). Tests that need libmpv or FFmpeg skip themselves when they are absent. Tests redirect all data with the `LUMINA_*` environment variables, so they never touch your real library.
 
+## Version control and releases
+
+- **`main` is the only line of development and is always releasable.** Work on a branch (`feat/...`, `fix/...`, `docs/...`), open a pull request, and merge once CI is green. No direct pushes to `main`; no force-pushes, ever.
+- **Commits** are short and imperative ("Fix seek preview at 4K"), one change each.
+- **Every user-visible change adds a line under `## [Unreleased]` in `CHANGELOG.md`** in the same pull request.
+- **Versions follow SemVer** (`MAJOR.MINOR.PATCH`): fixes bump PATCH, new features MINOR, breaking changes to settings, data or the database MAJOR (while below 1.0, MINOR may break). Database changes are always an appended migration.
+- **To release:** from a clean `main`, run `powershell -File scriptselease.ps1 -Version X.Y.Z` (bumps `Lumina.csproj`, dates the changelog, commits "Release X.Y.Z" and tags `vX.Y.Z`), run `scripts\gate.ps1`, build with `scripts\package.ps1 -NoKeys -NoFonts`, push the commit and tag, and create the GitHub release from `CHANGELOG.md` with the installer, portable zip, `SHA256SUMS.txt` and `latest.json` attached.
+- **Never commit** API keys (`secrets.local.json`), the Garet fonts, or private notes; they are git-ignored. Releases are built with `-NoKeys -NoFonts`.
+
 ## The regression gate
 
 `scripts/gate.ps1` is run before every release:
