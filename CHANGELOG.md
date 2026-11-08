@@ -4,6 +4,12 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+- TV episodes named without an `S01E02` tag no longer land in Movies ([#1](https://github.com/nomoron28/lumina/issues/1)). Lumina now reads season folders (`Season 2`, `S03`, `Specials`), names like `Episode 12`, `Ep 03` or `E05`, and folders of three or more files numbered `01`, `02`, `03`. Your library is re-read once after updating.
+
+### Added
+- Right-click a title and choose **This is a TV show, not a movie** (or the reverse) when Lumina still files something wrongly. The choice is remembered across rescans.
+
 ## [0.1.0] - first public release
 
 ### Library

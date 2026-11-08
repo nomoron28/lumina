@@ -177,6 +177,10 @@ public static class Db
         CREATE TABLE bookmarks(id INTEGER PRIMARY KEY, path TEXT NOT NULL, position_sec REAL NOT NULL, label TEXT NOT NULL, created_at INTEGER NOT NULL);
         CREATE INDEX bookmarks_path ON bookmarks(path);
         """,
+        // v6: the user's own "this is a TV show / a movie" for a folder or a file, kept across rescans
+        """
+        CREATE TABLE kind_override(path TEXT PRIMARY KEY COLLATE NOCASE, kind TEXT NOT NULL);
+        """,
     };
 
     public const string VersionKey = "schema_version";
@@ -659,6 +663,36 @@ public static class Db
         }
         tx.Commit();
         return n;
+    }
+
+    /// <summary>
+    /// The user says these files or folders are TV episodes ("show") or films ("movie"). The scanner honours it from now on;
+    /// the next scan reads every file again so the change shows at once.
+    /// </summary>
+    public static void SetKind(IEnumerable<string> paths, string kind)
+    {
+        if (kind is not ("show" or "movie")) throw new ArgumentException("kind must be show or movie", nameof(kind));
+        using (var c = Open())
+        using (var tx = c.BeginTransaction())
+        {
+            foreach (var p in paths)
+            {
+                var cmd = Cmd(c, "INSERT INTO kind_override(path,kind) VALUES(@p,@k) ON CONFLICT(path) DO UPDATE SET kind=@k", ("@p", p.TrimEnd('\\', '/')), ("@k", kind));
+                cmd.Transaction = tx; cmd.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+        KvSet("parse_v", "");
+    }
+
+    /// <summary>Every "this is a show / movie" the user has set, by file or folder path.</summary>
+    public static Dictionary<string, string> KindOverrides()
+    {
+        var d = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        using var c = Open();
+        using var r = Cmd(c, "SELECT path, kind FROM kind_override").ExecuteReader();
+        while (r.Read()) d[r.GetString(0)] = r.GetString(1);
+        return d;
     }
 
     public static int HiddenCount()

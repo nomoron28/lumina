@@ -16,6 +16,8 @@
 
 On a poster: play, mark watched or unwatched, add to favourites, add to a playlist, **Refresh info**, **Edit metadata...**, find subtitles, show in Explorer, remove.
 
+**This is a TV show, not a movie** (and **This is a movie, not a show**) fixes a title filed under the wrong kind. For a film it marks the file's whole folder as a show, numbering episodes from their names or, failing that, in name order; the choice sticks across rescans.
+
 **Edit metadata...** fixes a wrong match. Search TMDB by hand, see the candidates with their release dates, and pick one (or *None* to use only what the file name says).
 
 ## Details pages

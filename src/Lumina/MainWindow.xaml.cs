@@ -222,6 +222,10 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 Add(en.IsShow ? "Find subtitles for all episodes..." : "Find subtitles...", () => _ = FindSubtitlesFor(en.Items, en.Title), enabled: !string.IsNullOrEmpty(Config.OpenSubtitlesKey));
                 Add("Refresh info", () => RematchEntry(en, askForTitle: false), enabled: !string.IsNullOrEmpty(Config.TmdbKey));
                 Add("Edit metadata...", () => EditMetadata(en), enabled: !string.IsNullOrEmpty(Config.TmdbKey));
+                // a wrongly filed title: a show's files become films one by one; a film's whole folder becomes a show
+                Add(en.IsShow ? "This is a movie, not a show" : "This is a TV show, not a movie", () => _ = SetKind(
+                    en.IsShow ? en.Items.Select(i => i.Path) : en.Items.Select(i => Path.GetDirectoryName(i.Path) ?? i.Path).Distinct(StringComparer.OrdinalIgnoreCase),
+                    en.IsShow ? "movie" : "show"));
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(en.Next.Path), Explorer.CanReveal(en.Next.Path));
                 Add("Hide from library...", () => HideItems(en.Items, en.Title));
@@ -234,6 +238,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 {
                     var season = Db.List().Where(i => i.Kind == "show" && i.TmdbId == ep.TmdbId && i.Title == ep.Title && i.Season == s).ToList();
                     Add(season.All(i => i.Watched) ? "Mark season as unwatched" : "Mark season as watched", () => SetWatched(season, !season.All(i => i.Watched)));
+                    Add("This file is a movie, not an episode", () => _ = SetKind(new[] { ep.Path }, "movie"));
                 }
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(ep.Path), Explorer.CanReveal(ep.Path));
@@ -257,6 +262,22 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         Refresh();
         if (rows is { Count: > 0 } && Trakt.IsConnected)
             _ = Task.Run(() => Trakt.RemoveHistoryAsync(rows)).ContinueWith(t => { if (t.Result.Length > 0) Dispatcher.Invoke(() => Status.Text = t.Result); }, TaskScheduler.Default);
+    }
+
+    /// <summary>Right-click, "This is a TV show / a movie": remembered for those files or folders and applied by a rescan.</summary>
+    async Task SetKind(IEnumerable<string> paths, string kind)
+    {
+        try
+        {
+            Db.SetKind(paths.ToList(), kind);
+            Status.Text = kind == "show" ? "Filing these as TV episodes." : "Filing this as a movie.";
+            await Rescan();
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException e)
+        {
+            Lumina.Diagnostics.Log.Error("Set kind failed", e);
+            Status.Text = "Could not change that: " + e.Message;
+        }
     }
 
     /// <summary>Right-click, Edit metadata: search TMDB by hand and choose which title this movie or show is.</summary>

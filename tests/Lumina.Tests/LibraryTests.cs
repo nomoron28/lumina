@@ -21,6 +21,13 @@ public class NameParserTests
     [InlineData("Show.Name.2019.S02E03.720p", "show", "Show Name", 2019, 2, 3)]
     [InlineData("Blade Runner 2049 S01E01", "show", "Blade Runner 2049", null, 1, 1)]
     [InlineData("Numb3rs (2005) - S05E01", "show", "Numb3rs", 2005, 5, 1)]
+    // issue #1: shows without an SxxEyy tag were filed as movies
+    [InlineData("Show.Name.E05.720p", "show", "Show Name", null, 1, 5)]
+    [InlineData("Show Name - Episode 12", "show", "Show Name", null, 1, 12)]
+    [InlineData("Show Name Ep.03 1080p", "show", "Show Name", null, 1, 3)]
+    [InlineData("Apollo 13 (1995)", "movie", "Apollo 13", 1995, null, null)]
+    [InlineData("E.T. the Extra-Terrestrial (1982)", "movie", "E T the Extra-Terrestrial", 1982, null, null)]
+    [InlineData("Rocky 2", "movie", "Rocky 2", null, null, null)]
     public void Parses(string name, string kind, string title, int? year, int? season, int? episode) =>
         Assert.Equal(new Parsed(kind, title, year, season, episode), NameParser.Parse(name));
 }
@@ -69,6 +76,86 @@ public class DbTests : IDisposable
         File.Delete(Path.Combine(lib, "Movie (2020) 1080p.mkv"));
         Scanner.ScanAll();
         Assert.DoesNotContain(Db.List(), i => i.Title == "Movie");
+    }
+
+    // issue #1: episodes named without SxxEyy are told apart by their folders
+    [Theory]
+    [InlineData(@"Show Name/Season 2/Show Name - 03 - The Title.mkv", "Show Name", 2, 3)]
+    [InlineData(@"Show Name (2019)/Season 01/01.mkv", "Show Name", 1, 1)]
+    [InlineData(@"Show Name/S03/Show.Name.07.720p.mkv", "Show Name", 3, 7)]
+    [InlineData(@"Show Name/Specials/Show Name - 02.mkv", "Show Name", 0, 2)]
+    [InlineData(@"Show Name/Series 4/Episode 9.mkv", "Show Name", 4, 9)]
+    public void ASeasonFolderMakesAShow(string rel, string show, int season, int episode)
+    {
+        var lib = Path.Combine(_dir, "tv");
+        var f = Path.Combine(lib, rel.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(f)!);
+        File.WriteAllText(f, "x");
+        Db.Init();
+        Db.AddRoot(lib);
+        Scanner.ScanAll();
+        var i = Assert.Single(Db.List());
+        Assert.Equal(("show", show, (int?)season, (int?)episode), (i.Kind, i.Title, i.Season, i.Episode));
+    }
+
+    [Fact]
+    public void AFolderOfNumberedFilesIsAShow()
+    {
+        var lib = Path.Combine(_dir, "anime");
+        Directory.CreateDirectory(Path.Combine(lib, "Anime Title"));
+        foreach (var n in new[] { "01", "02", "03" }) File.WriteAllText(Path.Combine(lib, "Anime Title", $"Anime Title {n} [1080p].mkv"), "x");
+        Db.Init();
+        Db.AddRoot(lib);
+        Scanner.ScanAll();
+        var items = Db.List();
+        Assert.Equal(3, items.Count);
+        Assert.All(items, i => Assert.Equal(("show", "Anime Title", (int?)1), (i.Kind, i.Title, i.Season)));
+        Assert.Equal(new int?[] { 1, 2, 3 }, items.Select(i => i.Episode).OrderBy(e => e).ToArray());
+    }
+
+    [Fact]
+    public void FilmsInOneFolderStayFilms()
+    {
+        var lib = Path.Combine(_dir, "films");
+        Directory.CreateDirectory(Path.Combine(lib, "Rocky"));
+        foreach (var n in new[] { "Rocky 2", "Rocky 3", "Rocky 4" }) File.WriteAllText(Path.Combine(lib, "Rocky", n + ".mkv"), "x");
+        File.WriteAllText(Path.Combine(lib, "Movie One (2001).mkv"), "x");
+        File.WriteAllText(Path.Combine(lib, "Movie Two (2002).mkv"), "x");
+        File.WriteAllText(Path.Combine(lib, "Movie Three (2003).mkv"), "x");
+        Db.Init();
+        Db.AddRoot(lib);
+        Scanner.ScanAll();
+        Assert.All(Db.List(), i => Assert.Equal("movie", i.Kind));
+    }
+
+    [Fact]
+    public void TheUserCanSayAFolderIsAShowAndAFileIsAMovie()
+    {
+        var lib = Path.Combine(_dir, "mixed");
+        var showDir = Path.Combine(lib, "Some Show");
+        Directory.CreateDirectory(showDir);
+        File.WriteAllText(Path.Combine(showDir, "Some Show Pilot.mkv"), "x");
+        File.WriteAllText(Path.Combine(showDir, "Some Show The Second One.mkv"), "x");
+        var film = Path.Combine(lib, "Weird.Film.S01E01.mkv");
+        File.WriteAllText(film, "x");
+        Db.Init();
+        Db.AddRoot(lib);
+        Scanner.ScanAll();
+        Assert.Equal(2, Db.List().Count(i => i.Kind == "movie"));
+
+        Db.SetKind(new[] { showDir }, "show");
+        Db.SetKind(new[] { film }, "movie");
+        Scanner.ScanAll();
+        var items = Db.List();
+        var eps = items.Where(i => i.Kind == "show").OrderBy(i => i.Episode).ToList();
+        Assert.Equal(2, eps.Count);
+        Assert.All(eps, e => Assert.Equal(("Some Show", (int?)1), (e.Title, e.Season)));
+        Assert.Equal(new int?[] { 1, 2 }, eps.Select(e => e.Episode).ToArray());
+        var m = Assert.Single(items, i => i.Kind == "movie");
+        Assert.Equal(film, m.Path);
+
+        Assert.Equal(0, Scanner.ScanAll());   // the choice sticks across rescans
+        Assert.Equal(2, Db.List().Count(i => i.Kind == "show"));
     }
 
     [Fact]
