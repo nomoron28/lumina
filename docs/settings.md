@@ -34,7 +34,7 @@ Open **Settings** from the sidebar. The search box at the top finds any setting 
 
 **Accounts**: your TMDB, OpenSubtitles and OMDb keys, and Trakt client id (and an optional secret).
 
-**Advanced**: update checks and the update address; About and log files; extra mpv options, one `key=value` per line, applied last.
+**Advanced**: update checks and the update address; About, **Report a problem** (opens a new GitHub issue with your versions filled in and copies the end of the log, file paths removed, for you to paste) and log files; extra mpv options, one `key=value` per line, applied last.
 
 ## Profiles
 

@@ -255,7 +255,7 @@ public sealed class SettingsView : UserControl
 
     static readonly Dictionary<string, string> Verbs = new()
     {
-        ["clear-history"] = "Clear", ["show-shortcuts"] = "Show", ["open-folders"] = "Open", ["rescan"] = "Scan", ["reset-picture"] = "Reset", ["open-logs"] = "Open", ["edit-keys"] = "Customise", ["check-updates"] = "Check", ["show-about"] = "Show", ["show-logins"] = "Manage", ["unhide"] = "Show", ["show-profiles"] = "Manage", ["edit-controller"] = "Customise", ["set-pin"] = "Set or change", ["remove-pin"] = "Remove", ["lock-now"] = "Lock", ["assoc-add"] = "Add", ["assoc-default"] = "Open", ["assoc-remove"] = "Remove",
+        ["clear-history"] = "Clear", ["show-shortcuts"] = "Show", ["open-folders"] = "Open", ["rescan"] = "Scan", ["reset-picture"] = "Reset", ["open-logs"] = "Open", ["report-problem"] = "Report",["edit-keys"] = "Customise", ["check-updates"] = "Check", ["show-about"] = "Show", ["show-logins"] = "Manage", ["unhide"] = "Show", ["show-profiles"] = "Manage", ["edit-controller"] = "Customise", ["set-pin"] = "Set or change", ["remove-pin"] = "Remove", ["lock-now"] = "Lock", ["assoc-add"] = "Add", ["assoc-default"] = "Open", ["assoc-remove"] = "Remove",
     };
 
     static string Normalize(SettingDef d, string v) => AppSettings.Normalize(d, v);

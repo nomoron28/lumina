@@ -1198,6 +1198,18 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 System.IO.Directory.CreateDirectory(Lumina.Diagnostics.Log.Dir);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", "\"" + Lumina.Diagnostics.Log.Dir + "\"") { UseShellExecute = true });
                 break;
+            case "report-problem":
+            {
+                var tail = Lumina.Diagnostics.Report.LogTail();
+                try { if (tail.Length > 0) Clipboard.SetText(tail); }
+                catch (System.Runtime.InteropServices.COMException) { tail = ""; }   // another app holds the clipboard
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                    Lumina.Diagnostics.Report.IssueUrl(AppInfo.VersionText, Environment.OSVersion.Version.ToString())) { UseShellExecute = true });
+                _settings?.Say(tail.Length > 0
+                    ? "A new issue opened in your browser. The end of today's log is on your clipboard: paste it into the issue."
+                    : "A new issue opened in your browser.");
+                break;
+            }
             case "reset-picture":
                 AppSettings.Set(new Dictionary<string, string> { ["video.brightness"] = "0", ["video.contrast"] = "0", ["video.saturation"] = "0", ["video.gamma"] = "0", ["video.hue"] = "0" });
                 _settings?.Reload();
