@@ -115,6 +115,7 @@ The Garet typeface Lumina is designed around is not in the repository (its licen
 | [Architecture](docs/architecture.md) | How the app is put together |
 | [Development](docs/development.md) | Building, testing, the gate, packaging |
 | [Changelog](CHANGELOG.md) | What changed in each release |
+| [Roadmap](ROADMAP.md) | What is coming in the next releases |
 | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md) | |
 
 ## Support Lumina
