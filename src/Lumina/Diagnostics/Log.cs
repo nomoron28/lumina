@@ -75,7 +75,7 @@ public static class Log
         {
             e.Handled = true; // keep the app alive: a failed click should not lose the user's place
             if (Unhandled("UI thread", e.Exception))
-                ConfirmDialog.Tell(app.MainWindow, "Something went wrong", $"{e.Exception.Message}\n\nDetails were saved to the log in Settings, Advanced.");
+                ConfirmDialog.Tell(app.MainWindow, "Something went wrong", $"{e.Exception.Message}\n\nDetails were saved to the log. To tell us about it, use Settings, Advanced, Report a problem.");
         };
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Unhandled("AppDomain", e.ExceptionObject as Exception ?? new Exception(e.ExceptionObject?.ToString()), fatal: true);
         TaskScheduler.UnobservedTaskException += (_, e) => { Unhandled("Background task", e.Exception); e.SetObserved(); };

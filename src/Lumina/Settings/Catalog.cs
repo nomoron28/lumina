@@ -299,6 +299,7 @@ public static class Catalog
             "Where Lumina looks for a newer version: the latest GitHub release by default. Must start with https://. Leave empty to turn updates off.", "https://github.com/nomoron28/lumina/releases/latest/download/latest.json"),
         Button("updates.check", "advanced", "Updates", "Check for updates now", "check-updates", "Shows what changed before anything is downloaded. The file is checked against its checksum before it runs."),
         Button("advanced.about", "advanced", "Support", "About Lumina", "show-about", "Version, where your data is kept, and what the player is built on."),
+        Button("advanced.report", "advanced", "Support", "Report a problem", "report-problem", "Opens a new GitHub issue with your Lumina and Windows versions filled in, and copies the end of today's log (file paths removed) for you to paste. Nothing is sent until you submit it."),
         Button("advanced.logs", "advanced", "Support", "Log files", "open-logs", "Opens the folder with Lumina's log. Attach today's file when reporting a problem."),
         Text("mpvOptions", "advanced", "Player", "Extra mpv options", "",
             "One key=value per line. These win over everything above. Lines mpv rejects are skipped and named on screen.",
