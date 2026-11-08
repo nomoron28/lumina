@@ -12,6 +12,7 @@ A modern media library and video player for Windows. Point it at your folders, g
   <a href="LICENSE"><img alt="Licence: GPL-3.0-or-later" src="https://img.shields.io/badge/licence-GPL--3.0--or--later-blue"></a>
   <img alt="Windows 10 1809 or newer, x64" src="https://img.shields.io/badge/Windows-10%201809%2B%20x64-0078D4">
   <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4">
+  <a href="https://buymeacoffee.com/nomoron28"><img alt="Buy me a coffee" src="https://img.shields.io/badge/Buy%20me%20a%20coffee-support-FFDD00?logo=buymeacoffee&logoColor=black"></a>
 </p>
 
 <p align="center"><img src="docs/images/home.png" alt="Lumina's home page: continue watching, recently added and genres" /></p>
@@ -115,6 +116,12 @@ The Garet typeface Lumina is designed around is not in the repository (its licen
 | [Development](docs/development.md) | Building, testing, the gate, packaging |
 | [Changelog](CHANGELOG.md) | What changed in each release |
 | [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md) | |
+
+## Support Lumina
+
+Lumina is free and open source, made in spare time. If it makes your movie nights better, you can [buy me a coffee](https://buymeacoffee.com/nomoron28): it buys time for fixes and features, and for testing on more hardware. Starring the repository, reporting bugs and telling a friend help just as much.
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-nomoron28-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/nomoron28)
 
 ## Credits and licences
 
