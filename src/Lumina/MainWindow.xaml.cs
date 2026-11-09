@@ -772,11 +772,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         DPlayText.Text = sel.PlayText;
         System.Windows.Automation.AutomationProperties.SetName(DPlay, sel.PlayText);
         DProgressBlock.Visibility = sel.CanResume ? Visibility.Visible : Visibility.Collapsed;
-        if (sel.CanResume)
-        {
-            DProgress.Value = sel.Percent;
-            DProgressText.Text = sel.Duration is > 0 ? $"{MediaItem.Clock(sel.Position)} of {MediaItem.Clock(sel.Duration.Value)}" : $"Stopped at {MediaItem.Clock(sel.Position)}";
-        }
+        if (sel.CanResume) DProgress.Value = sel.Percent;
 
         FillMeta(en, detail, sel, null);
         DScores.Children.Clear();

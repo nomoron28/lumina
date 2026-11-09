@@ -33,16 +33,16 @@ public partial class WelcomeWindow : Window
         var badge = new Border
         {
             Width = 36, Height = 36, CornerRadius = new CornerRadius(10), VerticalAlignment = VerticalAlignment.Top,
-            Background = (System.Windows.Media.Brush)Application.Current.FindResource("Lumina.Brush.AccentDim"),
+            Background = (System.Windows.Media.Brush)Application.Current.FindResource("Lumina.Brush.SurfaceRaised"),
             Child = new TextBlock
             {
                 Text = number.ToString(), FontFamily = (System.Windows.Media.FontFamily)Application.Current.FindResource("Lumina.Font.Display"), FontWeight = FontWeights.SemiBold, FontSize = 17,
-                Foreground = (System.Windows.Media.Brush)Application.Current.FindResource("Lumina.Brush.Accent"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+                Foreground = (System.Windows.Media.Brush)Application.Current.FindResource("Lumina.Brush.Text"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
             },
         };
         System.Windows.Automation.AutomationProperties.SetName(badge, "Step " + number);
         var text = new StackPanel { Margin = new Thickness(18, 0, 0, 0) };
-        text.Children.Add(new TextBlock { Text = title, Style = S("Lumina.Text.Label"), FontWeight = FontWeights.SemiBold, FontSize = 17 });
+        text.Children.Add(new TextBlock { Text = title, Style = S("Lumina.Text.Label"), FontWeight = FontWeights.Medium, FontSize = 17 });
         text.Children.Add(new TextBlock { Text = body, Style = S("Lumina.Text.Muted"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), LineHeight = 21 });
         if (extra != null) { ((FrameworkElement)extra).Margin = new Thickness(0, 12, 0, 0); text.Children.Add(extra); }
         Grid.SetColumn(text, 1);

@@ -160,8 +160,10 @@
                            TextTrimming="CharacterEllipsis" Margin="14" VerticalAlignment="Center" HorizontalAlignment="Center"
                            FontFamily="{StaticResource Lumina.Font.Display}" FontSize="{StaticResource Lumina.FontSize.Subtitle}"
                            FontWeight="Normal" Foreground="{DynamicResource Lumina.Brush.TextMuted}" />
-                <Polygon Points="128,0 156,0 156,28" Fill="{DynamicResource Lumina.Brush.AccentFill}"
-                         Visibility="{Binding IsFresh, Converter={x:Static app:Conv.BoolToVisible}}" />
+                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Width="12" Height="12" CornerRadius="6" Background="#99000000"
+                        Visibility="{Binding IsFresh, Converter={x:Static app:Conv.BoolToVisible}}" ToolTip="Not started">
+                    <Ellipse Width="6" Height="6" Fill="#F1F2F5" />
+                </Border>
                 <Border Visibility="{Binding AllWatched, Converter={x:Static app:Conv.BoolToVisible}}" HorizontalAlignment="Right" VerticalAlignment="Top"
                         Margin="8" Width="24" Height="24" CornerRadius="12" Background="#CC000000">
                     <ui:SymbolIcon Symbol="Checkmark20" FontSize="14" Foreground="{DynamicResource Lumina.Brush.Accent}" />
@@ -243,8 +245,10 @@
                 <TextBlock Text="{Binding EpisodeNumber}" FontFamily="{StaticResource Lumina.Font.Display}" FontSize="34" FontWeight="SemiBold"
                            Foreground="{DynamicResource Lumina.Brush.TextFaint}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                 <Border><Border.Background><ImageBrush ImageSource="{Binding Still}" Stretch="UniformToFill" /></Border.Background></Border>
-                <Polygon Points="190,0 218,0 218,28" Fill="{DynamicResource Lumina.Brush.AccentFill}"
-                         Visibility="{Binding IsFresh, Converter={x:Static app:Conv.BoolToVisible}}" />
+                <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" Width="12" Height="12" CornerRadius="6" Background="#99000000"
+                        Visibility="{Binding IsFresh, Converter={x:Static app:Conv.BoolToVisible}}" ToolTip="Not started">
+                    <Ellipse Width="6" Height="6" Fill="#F1F2F5" />
+                </Border>
                 <ProgressBar Style="{StaticResource Lumina.Progress}" Value="{Binding Percent, Mode=OneWay}" VerticalAlignment="Bottom" Margin="10,0,10,9"
                              Visibility="{Binding Percent, Converter={x:Static app:Conv.PositiveToVisible}}" />
             </Grid>
@@ -269,7 +273,8 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Lumina.Brush.AccentFill}" />
+                            <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Lumina.Brush.Text}" />
+                            <Setter TargetName="Ring" Property="BorderThickness" Value="2" />
                         </Trigger>
                         <MultiTrigger><MultiTrigger.Conditions><Condition Property="IsKeyboardFocused" Value="True" /><Condition Property="app:FocusMode.Keyboard" Value="True" /></MultiTrigger.Conditions>
                             <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Lumina.Brush.Accent}" />

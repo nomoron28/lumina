@@ -54,7 +54,7 @@
     <sys:Double x:Key="Lumina.FontSize.Subtitle">16</sys:Double>
     <FontWeight x:Key="Lumina.FontWeight.Subtitle">SemiBold</FontWeight>
     <sys:Double x:Key="Lumina.FontSize.Title">20</sys:Double>
-    <FontWeight x:Key="Lumina.FontWeight.Title">SemiBold</FontWeight>
+    <FontWeight x:Key="Lumina.FontWeight.Title">Medium</FontWeight>
     <sys:Double x:Key="Lumina.FontSize.Headline">28</sys:Double>
     <FontWeight x:Key="Lumina.FontWeight.Headline">SemiBold</FontWeight>
     <sys:Double x:Key="Lumina.FontSize.Display">44</sys:Double>

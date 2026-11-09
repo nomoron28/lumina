@@ -35,8 +35,17 @@ public sealed class SettingsView : UserControl
         _search = new System.Windows.Controls.TextBox { Style = Res<Style>("Lumina.Search"), Tag = "Search settings", Margin = new Thickness(0, 0, 0, 14) };
         System.Windows.Automation.AutomationProperties.SetName(_search, "Search settings");
         _search.TextChanged += (_, _) => Rebuild();
-        DockPanel.SetDock(_search, Dock.Top);
-        left.Children.Add(_search);
+        // same field as the sidebar search: Lumina.Search leaves a slot on the left for the magnifier
+        var glass = new Wpf.Ui.Controls.SymbolIcon
+        {
+            Symbol = Wpf.Ui.Controls.SymbolRegular.Search20, FontSize = 16, HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0), IsHitTestVisible = false,
+        };
+        glass.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "Lumina.Brush.TextMuted");   // follows a theme switch
+        var searchField = new Grid { Margin = _search.Margin, Children = { _search, glass } };
+        _search.Margin = new Thickness(0);
+        DockPanel.SetDock(searchField, Dock.Top);
+        left.Children.Add(searchField);
         var navStack = new StackPanel();
         string? group = null;
         foreach (var c in Catalog.Categories)

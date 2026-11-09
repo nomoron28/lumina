@@ -72,8 +72,8 @@ public class DetailsTextTests
     public void AirDatesReadLikeTheReference(string? iso, string text) => Assert.Equal(text, DetailsText.AirDate(iso));
 
     [Theory]
-    [InlineData(1, 1, "No Strings", false, "E1 - No Strings")]
-    [InlineData(2, 5, "Title", true, "S2E5 - Title")]
+    [InlineData(1, 1, "No Strings", false, "E1 · No Strings")]
+    [InlineData(2, 5, "Title", true, "S2E5 · Title")]
     [InlineData(1, 3, null, false, "E3")]
     [InlineData(1, 3, "  ", true, "S1E3")]
     [InlineData(null, null, "Only a name", false, "Only a name")]
