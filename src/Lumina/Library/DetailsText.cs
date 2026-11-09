@@ -78,7 +78,7 @@ public static class DetailsText
     public static string EpisodeHeading(int? season, int? episode, string? name, bool showSeason)
     {
         var code = (showSeason && season is { } s ? $"S{s}" : "") + (episode is { } e ? $"E{e}" : "");
-        return string.IsNullOrWhiteSpace(name) ? code : code.Length == 0 ? name! : $"{code} - {name}";
+        return string.IsNullOrWhiteSpace(name) ? code : code.Length == 0 ? name! : $"{code} · {name}";
     }
 
     /// <summary>"AN" for Anne Gee Byrd, "D" for a single name. Shown where a person has no photo.</summary>

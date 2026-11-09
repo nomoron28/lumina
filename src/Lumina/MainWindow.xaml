@@ -391,7 +391,7 @@
                                 <Image x:Name="DLogo" MaxHeight="130" MaxWidth="340" HorizontalAlignment="Left" Stretch="Uniform" Visibility="Collapsed" Margin="0,0,0,18"
                                        AutomationProperties.Name="Title logo" />
                                 <TextBlock x:Name="DTitle" Style="{StaticResource Lumina.Text.Display}" TextWrapping="Wrap" Margin="0,0,0,16" />
-                                <Button x:Name="DPlay" Style="{StaticResource Lumina.Btn.Primary}" Click="OnDetailsPlay" HorizontalAlignment="Stretch" MinHeight="48">
+                                <Button x:Name="DPlay" Style="{StaticResource Lumina.Btn.Primary}" Background="{DynamicResource Lumina.Brush.Primary}" Foreground="{DynamicResource Lumina.Brush.OnPrimary}" Click="OnDetailsPlay" HorizontalAlignment="Stretch" MinHeight="48">
                                     <StackPanel Orientation="Horizontal">
                                         <ui:SymbolIcon Symbol="Play24" Filled="True" FontSize="18" Margin="0,0,10,0" />
                                         <TextBlock x:Name="DPlayText" />
@@ -399,7 +399,6 @@
                                 </Button>
                                 <StackPanel x:Name="DProgressBlock" Margin="4,10,4,0" Visibility="Collapsed">
                                     <ProgressBar x:Name="DProgress" Style="{StaticResource Lumina.Progress}" Height="4" Background="{DynamicResource Lumina.Brush.BorderInput}" />
-                                    <TextBlock x:Name="DProgressText" Style="{StaticResource Lumina.Text.Caption}" Margin="0,6,0,0" />
                                 </StackPanel>
                                 <StackPanel x:Name="DActions" Orientation="Horizontal" Margin="0,14,0,0">
                                     <Button x:Name="DWatched" Style="{StaticResource Lumina.Btn.Icon}" Width="46" Height="46" Margin="0,0,10,0" Click="OnDetailsWatched">
@@ -419,7 +418,7 @@
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="44,0,0,2" MaxWidth="900" HorizontalAlignment="Left">
-                                <TextBlock x:Name="DEpisodeTitle" Style="{StaticResource Lumina.Text.Label}" FontWeight="SemiBold" FontSize="22" Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap" />
+                                <TextBlock x:Name="DEpisodeTitle" Style="{StaticResource Lumina.Text.Label}" FontWeight="Medium" FontSize="22" Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap" />
                                 <WrapPanel x:Name="DMeta" Margin="0,0,0,10" />
                                 <TextBlock x:Name="DOverview" Style="{StaticResource Lumina.Text.Label}" FontWeight="Normal" TextWrapping="Wrap" MaxHeight="112" TextTrimming="CharacterEllipsis"
                                            FontSize="15" LineHeight="22" />
@@ -430,7 +429,7 @@
 
                     <StackPanel x:Name="DShowBlock" Margin="44,10,44,0" HorizontalAlignment="Stretch">
                         <WrapPanel x:Name="DSeasons" Margin="0,0,0,14" />
-                        <TextBlock x:Name="DEpisodesHeading" Text="Episodes" Style="{StaticResource Lumina.Text.Label}" FontWeight="SemiBold" FontSize="17" Margin="0,0,0,12" />
+                        <TextBlock x:Name="DEpisodesHeading" Text="Episodes" Style="{StaticResource Lumina.Text.Section}" Margin="0,0,0,12" />
                         <ListBox x:Name="DEpisodes" ItemContainerStyle="{StaticResource Lumina.Card.Episode}" ItemTemplate="{StaticResource Lumina.EpisodeCard}"
                                  Background="Transparent" BorderThickness="0" Padding="0" Margin="-10,-12,-10,-6" SelectionMode="Single" AutomationProperties.Name="Episodes"
                                  ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False"
@@ -439,7 +438,7 @@
                         </ListBox>
                     </StackPanel>
                     <StackPanel x:Name="DCastBlock" Margin="44,18,44,0" HorizontalAlignment="Stretch" Visibility="Collapsed">
-                        <TextBlock Text="Cast and Crew" Style="{StaticResource Lumina.Text.Label}" FontWeight="SemiBold" FontSize="17" Margin="0,0,0,12" />
+                        <TextBlock Text="Cast and crew" Style="{StaticResource Lumina.Text.Section}" Margin="0,0,0,12" />
                         <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Focusable="False" AutomationProperties.Name="Cast and crew" PreviewMouseWheel="OnRowWheel">
                             <ItemsControl x:Name="DCast" ItemTemplate="{StaticResource CastTemplate}">
                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>

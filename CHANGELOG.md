@@ -11,6 +11,10 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 - **Report a problem** in Settings, Advanced: opens a new GitHub issue with your Lumina and Windows versions filled in, and copies the end of today's log with file paths, your user name and any keys removed. Nothing is sent until you submit the issue.
 - Right-click a title and choose **This is a TV show, not a movie** (or the reverse) when Lumina still files something wrongly. The choice is remembered across rescans.
 
+### Changed
+- A quieter interface around your artwork: lighter section headings, a small dot instead of the coloured corner on titles you have not started, an off-white Resume button, a neutral ring on the selected episode, and neutral step numbers in the welcome tour.
+- The player shows both times in one format set by the length (`0:40:00 / 2:23:02` for a film, `4:05 / 21:30` for an episode). Episode headings read `E5 · Name`, and the Settings search has its magnifier.
+
 ## [0.1.0] - first public release
 
 ### Library

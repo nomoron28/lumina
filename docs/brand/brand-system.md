@@ -39,7 +39,7 @@ These swatches are the values the app already shipped and tested, so saved setti
 | Role | Used for | Rule |
 |---|---|---|
 | `Accent` | text, icons, selected labels | On dark: the swatch. On light: darkened until it reads 4.6:1 on the page and cards. |
-| `AccentFill` | progress, selection rings, corner marks | The livelier colour; needs only 3:1 against the surface. |
+| `AccentFill` | progress, keyboard focus and the controller | The livelier colour; needs only 3:1 against the surface. |
 | `AccentDim` | tinted plates behind accent glyphs | A mix of the accent and the page. |
 | `OnAccent` | text on an accent fill | Near-black or white, whichever has more contrast with the accent. |
 

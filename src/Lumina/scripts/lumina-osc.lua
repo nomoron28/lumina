@@ -70,10 +70,12 @@ local function fmt(t)
     return string.format("%d:%02d", m, s)
 end
 
-local function fmt_long(t)
+-- Both clocks share one shape, set by the length: 0:40:00 / 2:23:02 for a film, 4:05 / 21:30 for an episode.
+local function fmt_long(t, len)
     if not t or t < 0 then t = 0 end
     t = math.floor(t)
-    return string.format("%02d:%02d:%02d", math.floor(t / 3600), math.floor(t / 60) % 60, t % 60)
+    if math.max(len or 0, t) >= 3600 then return string.format("%d:%02d:%02d", math.floor(t / 3600), math.floor(t / 60) % 60, t % 60) end
+    return string.format("%d:%02d", math.floor(t / 60), t % 60)
 end
 
 -- Alpha 0 is opaque, 255 transparent. f scales the whole controller in and out.
@@ -1410,8 +1412,8 @@ local function dock_draw_modern(R, w, h, c, d)
     local tr_ = (active and 8.5 or 5.5) * d
     local tx = clamp(sk.x + sk.w * frac, sk.x + tr_, sk.x + sk.w - tr_)
     shape(rrect(tx - tr_, sy - tr_, 2 * tr_, 2 * tr_, tr_), "FFFFFF", 0)
-    text(R.tl, sy, fmt_long(pos), 17 * d, c.bright, 0, 4, false)
-    text(R.tr, sy, fmt_long(dur), 17 * d, c.text, 0, 6, false)
+    text(R.tl, sy, fmt_long(pos, dur), 17 * d, c.bright, 0, 4, false)
+    text(R.tr, sy, fmt_long(dur, dur), 17 * d, c.text, 0, 6, false)
 
     -- buttons
     local function tile(r, name, on)
@@ -1545,8 +1547,8 @@ dock_draw = function(R, w, h)
     end
 
     -- times and the seek trough
-    text(R.tl, cy, fmt_long(pos), 17.5 * d, c.text, 0, 4, false)
-    text(R.tr, cy, fmt_long(dur), 17.5 * d, c.text, 0, 6, false)
+    text(R.tl, cy, fmt_long(pos, dur), 17.5 * d, c.text, 0, 4, false)
+    text(R.tr, cy, fmt_long(dur, dur), 17.5 * d, c.text, 0, 6, false)
     local sk = R.seek
     local ty, th = sk.draw_y, sk.draw_h
     local frac = (dur > 0) and clamp(pos / dur, 0, 1) or 0
