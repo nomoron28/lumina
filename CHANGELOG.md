@@ -4,6 +4,8 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-10
+
 ### Fixed
 - TV episodes named without an `S01E02` tag no longer land in Movies ([#1](https://github.com/nomoron28/lumina/issues/1)). Lumina now reads season folders (`Season 2`, `S03`, `Specials`), names like `Episode 12`, `Ep 03` or `E05`, and folders of three or more files numbered `01`, `02`, `03`. Your library is re-read once after updating.
 
@@ -13,7 +15,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ### Changed
 - A quieter interface around your artwork: lighter section headings, a small dot instead of the coloured corner on titles you have not started, an off-white Resume button, a neutral ring on the selected episode, and neutral step numbers in the welcome tour.
-- The player shows both times in one format set by the length (`0:40:00 / 2:23:02` for a film, `4:05 / 21:30` for an episode). Episode headings read `E5 · Name`, and the Settings search has its magnifier.
+- The player shows both times in one format set by the length (`0:40:00 / 2:23:02` for a film, `4:05 / 21:30` for an episode). Episode headings read `E5 Â· Name`, and the Settings search has its magnifier.
 
 ## [0.1.0] - first public release
 
@@ -39,4 +41,5 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 - Per-user installer and portable zip; file associations, jump list, taskbar progress, media keys, tray, start with Windows, single instance, an auto-hide taskbar that can be revealed in fullscreen.
 - Update check against a release feed (off by default), verified with a checksum.
 
+[0.1.1]: https://github.com/nomoron28/lumina/releases/tag/v0.1.1
 [0.1.0]: https://github.com/nomoron28/lumina/releases/tag/v0.1.0
