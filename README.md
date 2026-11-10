@@ -124,6 +124,16 @@ Lumina is free and open source, made in spare time. If it makes your movie night
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-nomoron28-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/nomoron28)
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (applied for; until it is approved, releases are unsigned).
+
+- Only release builds made by this repository's [Release workflow](.github/workflows/release.yml) on GitHub Actions, from the public source on `main`, are signed. Builds made on a personal computer are never signed.
+- Committers and reviewers: [nomoron28](https://github.com/nomoron28). Approver of each signing request: [nomoron28](https://github.com/nomoron28). The account uses two-factor sign-in.
+- Every change reaches `main` through a pull request that must pass the `build-and-test` check.
+
+**Privacy:** Lumina does not send any information to other networked systems unless you set it up or ask for it: TMDB and OMDb for artwork, details and ratings, OpenSubtitles when you search for subtitles, Trakt if you connect it, and the release feed only if you turn on update checks. There is no account, no telemetry and no crash reporting. Details are in the [FAQ](docs/troubleshooting.md#faq).
+
 ## Credits and licences
 
 Lumina is free software under the **GNU General Public License v3.0 or later** (see [LICENSE](LICENSE)). It stands on the work of others: [mpv / libmpv](https://mpv.io/), [FFmpeg](https://ffmpeg.org/), [WPF-UI](https://github.com/lepoco/wpfui), [Microsoft.Data.Sqlite](https://learn.microsoft.com/dotnet/standard/data/sqlite/), and [Inno Setup](https://jrsoftware.org/isinfo.php). The full list, with licences, is in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
