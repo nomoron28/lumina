@@ -945,6 +945,9 @@ function Part-Tour {
         CheckTrue "the welcome opens on a first start" (Find-Element $app "Welcome to Lumina" 6000 -Text)
         CheckTrue "it shows the logo" (Find-Element $app "Lumina logo" 2000)
         CheckTrue "step 1 offers to choose a folder" (Find-Element $app "Choose a folder..." 2000)
+        CheckTrue "step 2 has a key field, Test and a sign-up link for each service" ((Find-Element $app "TMDB key" 2000) -and (Find-Element $app "Test OMDb key" 1500) -and (Find-Element $app "Get a key for OpenSubtitles" 1500))
+        Click-Element $app "Test TMDB key"
+        CheckTrue "Test without a key asks for one (and sends nothing)" (Find-Element $app "Paste a key first" 2000 -Text)
         CheckTrue "step 3 offers a theme and the nine accents" ((Find-Element $app "Theme Light" 2000) -and (Find-Element $app "Accent Mint" 1500) -and (Find-Element $app "Accent Neutral" 1500))
         Click-Element $app "Theme Light"
         Start-Sleep -Milliseconds 400

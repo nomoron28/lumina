@@ -131,6 +131,9 @@ public static class Tmdb
 
     // ---- network ----
 
+    /// <summary>The cheapest request that needs a valid key: the Welcome tour's Test button. Throws like any other request.</summary>
+    public static async Task PingAsync() { using var _ = await GetJson("configuration", ""); }
+
     static async Task<JsonDocument> GetJson(string path, string query)
     {
         var key = Config.TmdbKey ?? throw new InvalidOperationException("no TMDB key");

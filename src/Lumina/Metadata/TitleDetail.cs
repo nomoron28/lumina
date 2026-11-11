@@ -44,6 +44,14 @@ public static class Omdb
         return new Ratings(imdb, rt);
     }
 
+    /// <summary>One lookup that only succeeds with a valid key (OMDb answers 401 otherwise): the Welcome tour's Test button.</summary>
+    public static async Task PingAsync()
+    {
+        var key = Key ?? throw new InvalidOperationException("no OMDb key");
+        using var res = await Http.GetAsync(Api + "?i=tt0111161&apikey=" + Uri.EscapeDataString(key));
+        res.EnsureSuccessStatusCode();
+    }
+
     public static async Task<Ratings> FetchAsync(string imdbId)
     {
         var key = Key ?? throw new InvalidOperationException("no OMDb key");
