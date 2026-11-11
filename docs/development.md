@@ -66,6 +66,16 @@ powershell -File scripts\package.ps1 -NoKeys
 
 Writes `artifacts/Lumina-<version>-setup.exe`, `Lumina-<version>-portable.zip`, `SHA256SUMS.txt` and `latest.json` (the feed the in-app update check reads). The version comes from `src/Lumina/Lumina.csproj`. `-NoKeys` leaves out any baked-in API keys; use it for anything you publish.
 
+## Package managers
+
+After a release is published, `powershell -File scripts\packages.ps1 -Version X.Y.Z` writes the manifests from that release's `SHA256SUMS.txt`. Commit them through a PR, then:
+
+- **Scoop**: nothing to submit. This repository is the bucket (`bucket/lumina.json`, the portable zip with `data` persisted), so `scoop bucket add lumina https://github.com/nomoron28/lumina` picks up the new version once the PR is merged.
+- **winget**: `packaging/winget/manifests/n/nomoron28/Lumina/X.Y.Z/` is a ready folder for a PR to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs). Check it with `winget validate --manifest <folder>`, then submit it with `wingetcreate submit <folder>` (or copy it into a fork). Microsoft's bots and moderators review the first version; later ones usually merge automatically.
+- **Chocolatey**: `choco pack packaging\chocolatey\lumina.nuspec`, then `choco push lumina.X.Y.Z.nupkg --source https://push.chocolatey.org/ --api-key <key>` from a chocolatey.org account. Every version goes through Chocolatey's automated checks and a human review.
+
+The installer is per-user, so winget installs it for the current user. Chocolatey runs elevated, so its package installs for all users (`/ALLUSERS`).
+
 ## Conventions
 
 - Every setting is a row in `Settings/Catalog.cs`; never read ad-hoc config keys.

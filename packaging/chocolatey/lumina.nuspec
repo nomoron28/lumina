@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>lumina</id>
+    <version>0.1.1</version>
+    <title>Lumina</title>
+    <authors>nomoron28</authors>
+    <owners>nomoron28</owners>
+    <projectUrl>https://github.com/nomoron28/lumina</projectUrl>
+    <packageSourceUrl>https://github.com/nomoron28/lumina/tree/main/packaging/chocolatey</packageSourceUrl>
+    <licenseUrl>https://github.com/nomoron28/lumina/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <bugTrackerUrl>https://github.com/nomoron28/lumina/issues</bugTrackerUrl>
+    <releaseNotes>https://github.com/nomoron28/lumina/releases/tag/v0.1.1</releaseNotes>
+    <tags>media-player video-player media-library mpv movies tv-shows</tags>
+    <summary>A media library and video player for Windows: your folders as a poster wall, and a libmpv player.</summary>
+    <description>Lumina scans your local folders and network shares, fills in posters, summaries, cast and ratings, remembers where you stopped, and plays everything through libmpv with hardware decoding, HDR tone mapping and bit-perfect audio. No account and no telemetry.</description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
