@@ -18,7 +18,7 @@ public class ControllerLuaTests
     {
         if (!Fixtures.HasMpv) return;
         using var m = Fixtures.Open("multi.mkv");
-        Assert.Equal("chap+cc+audio+speed+queue+gear+snap", Wait(m, "controls", "chap+cc+audio+speed+queue+gear+snap"));
+        Assert.Equal("cc+audio+speed+queue+chap+snap+gear", Wait(m, "controls", "cc+audio+speed+queue+chap+snap+gear"));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class ControllerLuaTests
         m.Command("script-message", "lumina-controls", "speed+cc");
         Assert.Equal("speed+cc+gear", Wait(m, "controls", "speed+cc+gear"));
         m.Command("script-message", "lumina-controls", "nonsense");
-        Assert.Equal("chap+cc+audio+speed+queue+gear+snap", Wait(m, "controls", "chap+cc+audio+speed+queue+gear+snap"));
+        Assert.Equal("cc+audio+speed+queue+chap+snap+gear", Wait(m, "controls", "cc+audio+speed+queue+chap+snap+gear"));
         m.Command("script-message", "lumina-controls", "cc+cc+snap+gear+x");
         Assert.Equal("cc+snap+gear", Wait(m, "controls", "cc+snap+gear"));
     }

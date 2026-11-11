@@ -6,9 +6,9 @@ namespace Lumina.Tests;
 public class ControllerLayoutTests
 {
     [Theory]
-    [InlineData(null, "chap+cc+audio+speed+queue+gear+snap")]
-    [InlineData("", "chap+cc+audio+speed+queue+gear+snap")]
-    [InlineData("garbage", "chap+cc+audio+speed+queue+gear+snap")]
+    [InlineData(null, "cc+audio+speed+queue+chap+snap+gear")]
+    [InlineData("", "cc+audio+speed+queue+chap+snap+gear")]
+    [InlineData("garbage", "cc+audio+speed+queue+chap+snap+gear")]
     [InlineData("speed+cc+gear", "speed+cc+gear")]
     [InlineData("speed+cc", "speed+cc+gear")]                    // the gear can never be taken away
     [InlineData("cc+cc+audio+gear", "cc+audio+gear")]            // repeats dropped
@@ -21,7 +21,7 @@ public class ControllerLayoutTests
     public void DefaultIsDefaultAndOtherOrdersAreNot()
     {
         Assert.True(ControllerLayout.IsDefault(null));
-        Assert.True(ControllerLayout.IsDefault("chap+cc+audio+speed+queue+gear+snap"));
+        Assert.True(ControllerLayout.IsDefault("cc+audio+speed+queue+chap+snap+gear"));
         Assert.False(ControllerLayout.IsDefault("cc+gear"));
         Assert.False(ControllerLayout.IsDefault("gear+snap+queue+speed+audio+cc+chap"));
     }

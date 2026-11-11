@@ -98,6 +98,9 @@
 
         <!-- Out of playback the title bar is only the window buttons at the right, so the page's own controls under the top edge stay clickable; the strip above moves the window. -->
         <ui:TitleBar x:Name="Bar" Grid.ColumnSpan="2" Grid.RowSpan="2" VerticalAlignment="Top" HorizontalAlignment="Right" Width="170" Height="32" Panel.ZIndex="5" Title="" Background="Transparent" />
+        <!-- The file name during playback. Not the TitleBar's own Title: that one never shortens, so a long name pushed the window buttons out. -->
+        <TextBlock x:Name="BarTitle" Grid.ColumnSpan="2" VerticalAlignment="Top" Height="32" Padding="0,8,0,0" Margin="16,0,150,0" Panel.ZIndex="6"
+                   IsHitTestVisible="False" TextTrimming="CharacterEllipsis" Style="{StaticResource Lumina.Text.Caption}" Visibility="Collapsed" />
         <Border x:Name="DragStrip" Grid.ColumnSpan="2" Height="12" VerticalAlignment="Top" Background="Transparent" Panel.ZIndex="5" MouseLeftButtonDown="OnDragStrip" />
 
         <!-- ================= Sidebar ================= -->

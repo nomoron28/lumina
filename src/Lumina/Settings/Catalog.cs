@@ -115,7 +115,7 @@ public static class Catalog
             "Modern is a floating glass panel over the picture that fades away when idle. VLC is a flat bar under the picture with a tabbed panel on the right. Classic is a full-width bar over the picture. Floating is a rounded bar at the bottom centre with a Close button at the top left.", segmented: true),
         Button("interface.controller", "interface", "Controller", "Customise the controller", "edit-controller",
             "Choose which buttons the on-screen controller shows and in what order."),
-        Text("interface.controls", "interface", "Controller", "Controller buttons (advanced)", "chap+cc+audio+speed+queue+gear+snap",
+        Text("interface.controls", "interface", "Controller", "Controller buttons (advanced)", "cc+audio+speed+queue+chap+snap+gear",
             "What Customise the controller saves. Names joined with +, left to right. The gear always stays.", "chap+cc+audio"),
         Slider("interface.hideAfter", "interface", "Player controls", "Hide after", 2.6, 1, 10, 0.5, "s"),
 

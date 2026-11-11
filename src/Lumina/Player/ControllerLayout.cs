@@ -5,7 +5,7 @@ public static class ControllerLayout
 {
     public static readonly IReadOnlyList<(string Id, string Label)> Known = new[]
     {
-        ("chap", "Chapters"), ("cc", "Subtitles"), ("audio", "Audio tracks"), ("speed", "Speed"), ("queue", "Queue"), ("gear", "Player settings"), ("snap", "Snapshot"),
+        ("cc", "Subtitles"), ("audio", "Audio tracks"), ("speed", "Speed"), ("queue", "Queue"), ("chap", "Chapters"), ("snap", "Snapshot"), ("gear", "Player settings"),
     };
 
     public static readonly IReadOnlyList<string> Default = Known.Select(k => k.Id).ToList();
