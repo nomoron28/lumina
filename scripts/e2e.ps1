@@ -836,6 +836,7 @@ function Part-Network {
 }
 
 function Part-Updates {
+    $appVersion = [regex]::Match((Get-Content "$PSScriptRoot\..\src\Lumina\Lumina.csproj" -Raw), '<Version>([^<]+)</Version>').Groups[1].Value
     Write-Host "Update check"
     $port = Get-Random -Minimum 30000 -Maximum 40000
     $serverLog = Join-Path (Split-Path $fx -Parent) "fake-server.log"
@@ -862,12 +863,12 @@ function Part-Updates {
         $app = Start-Lumina "" @{} "settings"
         try {
             Start-Sleep -Seconds 3
-            Check "by default nothing contacts the update server at startup" (Test-Path $serverLog) $false
+            Check "with the start-up check off, nothing contacts the update server" (Test-Path $serverLog) $false
 
             Click-Element $app "Advanced"
             Click-Element $app "Check for updates now"
             CheckTrue "a newer version is announced" (Find-Element $app "Lumina 9.9.9 is available" 5000 -Text)
-            CheckTrue "with the notes from the feed" (Find-Element $app "You have 0.1.0. Lumina downloads it, checks it against its checksum, then closes and installs it.`r`n`r`nFaster startup and a calmer library." 2000 -Text)
+            CheckTrue "with the notes from the feed" (Find-Element $app "You have $appVersion. Lumina downloads it, checks it against its checksum, then closes and installs it.`r`n`r`nFaster startup and a calmer library." 2000 -Text)
             Click-Element $app "Cancel"
             Start-Sleep -Milliseconds 500
             Check "cancelling downloads nothing" (Test-Path $dl) $false
