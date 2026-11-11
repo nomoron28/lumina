@@ -14,7 +14,7 @@ Open **Settings** from the sidebar. The search box at the top finds any setting 
 
 ## Media
 
-**Playback**: profiles (Movies, Anime, Night, and your own; export and import as JSON); continue where you left off; start paused; default speed; queue repeat and shuffle; what the sleep timer does; what happens after an episode ends; seek precision; preferred audio language.
+**Playback**: profiles (Movies, Anime, Night, and your own; export and import as JSON); continue where you left off; play videos with Lumina or another player (VLC, MPC-HC, MPC-BE, PotPlayer, mpv, mpv.net, or any program with its own command line); start paused; default speed; queue repeat and shuffle; what the sleep timer does; what happens after an episode ends; seek precision; preferred audio language.
 
 **Video**: start in fullscreen; keep the screen awake; picture adjustments; deinterlacing; aspect ratio; HDR tone mapping; **picture scaling** (Fast, the default, or High quality); smooth motion.
 
