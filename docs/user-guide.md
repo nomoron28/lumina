@@ -14,7 +14,7 @@
 
 ### Right-click menu
 
-On a poster: play, mark watched or unwatched, add to favourites, add to a playlist, **Refresh info**, **Edit metadata...**, find subtitles, show in Explorer, remove.
+On a poster: play, **Play with** (Lumina or another player found on your PC, just this once), mark watched or unwatched, add to favourites, add to a playlist, **Refresh info**, **Edit metadata...**, find subtitles, show in Explorer, remove.
 
 **This is a TV show, not a movie** (and **This is a movie, not a show**) fixes a title filed under the wrong kind. For a film it marks the file's whole folder as a show, numbering episodes from their names or, failing that, in name order; the choice sticks across rescans.
 
@@ -64,6 +64,12 @@ On a touchscreen: tap the controls, drag along the seek bar and the volume slide
 ### Miniplayer
 
 `W` shrinks the player to a small always-on-top window with a queue card; press it again to return.
+
+### Playing in another player
+
+Prefer VLC, MPC-HC, MPC-BE, PotPlayer, mpv or mpv.net? Choose it in **Settings, Playback, Player, Play videos with**, and Lumina hands every video from the library to that player, starting where you left off and passing a downloaded subtitle along. Lumina finds the player itself; if it is somewhere unusual, set **Player program**. **Another program** takes any player with a command line you write (`{file}`, `{start}`, `{startms}`, `{sub}`).
+
+VLC and mpv tell Lumina where you stopped, so resume points and watched marks work as usual. MPC, PotPlayer and other programs cannot, so when they close Lumina asks whether you finished. Lumina's own player is still used for streams and inside the player (next episode, the queue).
 
 ## Privacy
 

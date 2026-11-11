@@ -217,6 +217,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         {
             case LibraryEntry en:
                 Add(en.PlayLabel, () => Play(en.Next.Path, en.Next));
+                menu.Items.Add(PlayWithMenu(en.Next.Path, en.Next));
                 Add(en.AllWatched ? "Mark as unwatched" : "Mark as watched", () => SetWatched(en.Items, !en.AllWatched));
                 menu.Items.Add(new Separator());
                 Add(en.IsShow ? "Find subtitles for all episodes..." : "Find subtitles...", () => _ = FindSubtitlesFor(en.Items, en.Title), enabled: !string.IsNullOrEmpty(Config.OpenSubtitlesKey));
@@ -232,6 +233,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 break;
             case MediaItem ep:
                 Add(ep.PlayText, () => Play(ep.Path, ep));
+                menu.Items.Add(PlayWithMenu(ep.Path, ep));
                 Add(ep.Watched ? "Mark as unwatched" : "Mark as watched", () => SetWatched(new[] { ep }, !ep.Watched));
                 Add("Find subtitles", () => _ = FindSubtitlesFor(new[] { ep }, ep.EpisodeTitle), enabled: !string.IsNullOrEmpty(Config.OpenSubtitlesKey));
                 if (ep.Season is { } s && ep.Kind == "show")
@@ -1324,7 +1326,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     // ================= playback =================
 
-    void Play(string path, MediaItem? item, bool keepQueue = false)
+    /// <param name="with">"Play with" from the right-click menu: a player id for this one time ("lumina" for the built-in player).</param>
+    void Play(string path, MediaItem? item, bool keepQueue = false, string? with = null)
     {
         if (IsLockedPath(path))
         {
@@ -1332,6 +1335,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             _unlocked = true;
             Refresh();
         }
+        // another player: only for files (streams need Lumina's headers), and never from inside Lumina's own player (next episode, queue)
+        var player = with ?? (Stage.Visibility == Visibility.Visible ? "lumina" : AppSettings.Get("player.external"));
+        if (player != "lumina" && _streamAuth == null && _streamLoadUrl == null && File.Exists(path)) { PlayExternal(player, path, item); return; }
         if (!keepQueue) _queue.Clear();
         _playingPath = path;
         _playingItem = item;
@@ -1972,6 +1978,60 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     }
 
     /// <summary>Start playing several things one after another.</summary>
+    void PlayExternal(string player, string path, MediaItem? item)
+    {
+        var opts = _launch; _launch = null;
+        var start = opts?.StartSeconds ?? (item is { Watched: false, Position: > 5 } && AppSettings.Get("playback.resume") == "always" ? item.Position : 0);
+        var sub = opts?.SubFiles?.FirstOrDefault() ?? OpenSubtitles.Cached(path, null);
+        ExternalPlayer.Session s;
+        try
+        {
+            s = ExternalPlayer.Session.Start(player, path, start, sub,
+                AppSettings.Get("player.external") == player || player == "custom" ? AppSettings.Get("player.externalPath") : null, AppSettings.Get("player.externalArgs"));
+        }
+        catch (Exception e) when (e is ExternalPlayer.NotFoundException or System.ComponentModel.Win32Exception)
+        {
+            Status.Text = e.Message;
+            Lumina.Diagnostics.Log.Info("Play with " + player + " failed: " + e.Message);
+            return;
+        }
+        RememberRecent(path);
+        Status.Text = $"Playing in {s.Name}";
+        s.Exited += (pos, dur) => Dispatcher.BeginInvoke(() => AfterExternal(item, s.Name, pos, dur));
+    }
+
+    /// <summary>The other player closed: keep the resume point it reported, or ask, since it could not say.</summary>
+    void AfterExternal(MediaItem? item, string name, double? pos, double? dur)
+    {
+        if (Status.Text == $"Playing in {name}") Status.Text = "";
+        if (item == null) return;
+        if (pos is { } p && dur is { } d && d > 0)
+        {
+            if (AppSettings.Bool("privacy.rememberPosition")) Db.SaveWatch(item.Id, p, d, p / d >= PlaybackSession.WatchedFraction);
+        }
+        else if (!item.Watched && ConfirmDialog.Question(this, "Did you finish it?", $"{name} cannot tell Lumina where you stopped. Mark {(item.Kind == "show" ? item.EpisodeTitle : item.Title)} as watched?", "Mark as watched"))
+            Db.MarkWatched(new[] { item.Id }, true);
+        Refresh();
+    }
+
+    /// <summary>The right-click "Play with" submenu: Lumina, then each player found on this PC.</summary>
+    MenuItem PlayWithMenu(string path, MediaItem item)
+    {
+        var sub = new MenuItem { Header = "Play with" };
+        System.Windows.Automation.AutomationProperties.SetName(sub, "Play with");
+        void Add(string header, string id)
+        {
+            var mi = new MenuItem { Header = header };
+            System.Windows.Automation.AutomationProperties.SetName(mi, "Play with " + header);
+            mi.Click += (_, _) => Play(path, item, with: id);
+            sub.Items.Add(mi);
+        }
+        Add("Lumina", "lumina");
+        foreach (var (kind, _) in ExternalPlayer.Installed()) Add(kind.Name, kind.Id);
+        if (AppSettings.Get("player.externalPath") is { Length: > 0 } custom && AppSettings.Get("player.external") == "custom") Add(Path.GetFileNameWithoutExtension(custom), "custom");
+        return sub;
+    }
+
     void PlayQueue(IReadOnlyList<QueueItem> items, int start = 0)
     {
         if (items.Count == 0) return;

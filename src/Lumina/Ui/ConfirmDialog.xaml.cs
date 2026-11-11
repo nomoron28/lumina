@@ -25,6 +25,10 @@ public partial class ConfirmDialog : Window
     void OnCancel(object sender, RoutedEventArgs e) => DialogResult = false;
 
     /// <summary>True if the user confirmed.</summary>
+    /// <summary>A real question (not an "are you sure"), so it is asked even when confirmations are turned off.</summary>
+    public static bool Question(Window? owner, string title, string body, string okText) =>
+        new ConfirmDialog(title, body, okText, showCancel: true) { Owner = owner }.ShowDialog() == true;
+
     public static bool Ask(Window? owner, string title, string body, string okText = "Remove")
     {
         if (!Lumina.Settings.AppSettings.Bool("general.confirm")) return true;
