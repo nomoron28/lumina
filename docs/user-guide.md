@@ -67,4 +67,4 @@ On a touchscreen: tap the controls, drag along the seek bar and the volume slide
 
 ## Privacy
 
-There is no account and no telemetry. Lumina contacts only the services you configure (TMDB for artwork, OMDb for ratings, OpenSubtitles, Trakt) and, if you turn it on, the release feed for update checks. See the [FAQ](troubleshooting.md#faq).
+There is no account and no telemetry. Lumina contacts only the services you configure (TMDB for artwork, OMDb for ratings, OpenSubtitles, Trakt) and, once a day at most, the release feed to check for a newer version (you can turn this off in Settings, Advanced). See the [FAQ](troubleshooting.md#faq).

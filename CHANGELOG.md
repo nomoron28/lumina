@@ -4,6 +4,9 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+- Lumina now checks for a newer version when it starts, at most once a day. It asks the release feed on GitHub and sends nothing else; a new version is only downloaded and installed if you say yes. Turn it off in Settings, Advanced, Updates. If you upgrade from 0.1, this is switched on for you as well.
+
 ## [0.1.1] - 2026-11-10
 
 ### Fixed

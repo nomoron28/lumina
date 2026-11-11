@@ -132,7 +132,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - Committers and reviewers: [nomoron28](https://github.com/nomoron28). Approver of each signing request: [nomoron28](https://github.com/nomoron28). The account uses two-factor sign-in.
 - Every change reaches `main` through a pull request that must pass the `build-and-test` check.
 
-**Privacy:** Lumina does not send any information to other networked systems unless you set it up or ask for it: TMDB and OMDb for artwork, details and ratings, OpenSubtitles when you search for subtitles, Trakt if you connect it, and the release feed only if you turn on update checks. There is no account, no telemetry and no crash reporting. Details are in the [FAQ](docs/troubleshooting.md#faq).
+**Privacy:** Lumina does not send any information to other networked systems unless you set it up or ask for it: TMDB and OMDb for artwork, details and ratings, OpenSubtitles when you search for subtitles, Trakt if you connect it, and, once a day at most, the release feed on GitHub to see whether there is a newer version (Settings, Advanced turns this off). There is no account, no telemetry and no crash reporting. Details are in the [FAQ](docs/troubleshooting.md#faq).
 
 ## Credits and licences
 

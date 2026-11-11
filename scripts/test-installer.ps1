@@ -20,7 +20,7 @@ $tmp = Join-Path $env:TEMP ("lumina-inst-" + [guid]::NewGuid().ToString("N").Sub
 $dir = Join-Path $tmp "Lumina"
 $dataRoot = Join-Path $tmp "dataroot"
 New-Item -ItemType Directory -Force "$dataRoot\Roaming\Lumina", "$dataRoot\Local\Lumina" | Out-Null
-Set-Content "$dataRoot\Roaming\Lumina\config.json" '{"general.tour":"false"}' ; Set-Content "$dataRoot\Local\Lumina\art.txt" "x"
+Set-Content "$dataRoot\Roaming\Lumina\config.json" '{"general.tour":"false","updates.onStart":"false"}' ; Set-Content "$dataRoot\Local\Lumina\art.txt" "x"
 $regBranch = "Software\LuminaInstTest\" + [guid]::NewGuid().ToString("N")
 $credPrefix = "LuminaInstTest." + [guid]::NewGuid().ToString("N").Substring(0, 8) + ":"
 $env:LUMINA_REG_BRANCH = $regBranch
