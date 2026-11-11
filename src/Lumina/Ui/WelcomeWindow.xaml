@@ -2,27 +2,31 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
-        ShowInTaskbar="False" SizeToContent="Height" Width="740" MaxHeight="940" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False" SizeToContent="Height" Width="760" MaxHeight="940" WindowStartupLocation="CenterOwner"
         FontFamily="{StaticResource Lumina.Font.Text}" KeyDown="OnKey">
     <!-- A soft shadow needs breathing room around the card, hence the outer margin. -->
     <Grid Margin="24">
         <Border CornerRadius="{StaticResource Lumina.Radius.Surface}" Background="{DynamicResource Lumina.Brush.SurfaceRaised}"
-                BorderThickness="1" BorderBrush="{DynamicResource Lumina.Brush.Border}" Padding="44,36,44,28">
+                BorderThickness="1" BorderBrush="{DynamicResource Lumina.Brush.Border}" Padding="44,28,44,24">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="40" ShadowDepth="10" Opacity="0.55" Color="#000000" Direction="270" />
             </Border.Effect>
-            <StackPanel>
+            <!-- the steps scroll on short screens; the identity and the buttons stay put -->
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <!-- the identity: the aperture, the wordmark, one line -->
                 <StackPanel HorizontalAlignment="Center">
-                    <Image Source="{StaticResource Lumina.Brand.Mark}" Width="88" Height="88" HorizontalAlignment="Center" AutomationProperties.Name="Lumina logo" />
+                    <Image Source="{StaticResource Lumina.Brand.Mark}" Width="72" Height="72" HorizontalAlignment="Center" AutomationProperties.Name="Lumina logo" />
                     <TextBlock x:Name="Heading" Text="Welcome to Lumina" Style="{StaticResource Lumina.Text.Page}" HorizontalAlignment="Center" Margin="0,16,0,0"
                                AutomationProperties.Name="Welcome to Lumina" />
                     <TextBlock Text="Your media, in the light." Style="{StaticResource Lumina.Text.Muted}" FontSize="16" HorizontalAlignment="Center" Margin="0,6,0,0" />
                 </StackPanel>
 
-                <StackPanel x:Name="Rows" Margin="0,30,0,0" />
+                <ScrollViewer Grid.Row="1" Margin="0,28,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                    <StackPanel x:Name="Rows" Margin="0,0,18,0" />
+                </ScrollViewer>
 
-                <Grid Margin="0,22,0,0">
+                <Grid Grid.Row="2" Margin="0,20,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <TextBlock Text="Nothing here is required. You can change all of it later in Settings." Style="{StaticResource Lumina.Text.Caption}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,24,0" />
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
@@ -30,7 +34,7 @@
                         <Button x:Name="StartBtn" Content="Get started" Style="{StaticResource Lumina.Btn.Primary}" Click="OnStart" IsDefault="True" Margin="10,0,0,0" MinHeight="40" />
                     </StackPanel>
                 </Grid>
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>

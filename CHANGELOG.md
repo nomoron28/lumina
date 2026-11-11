@@ -4,6 +4,9 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- The welcome tour now sets up the TMDB, OMDb and OpenSubtitles keys: paste each one, press **Test** to see whether it works, or follow **Get a key** to sign up for free. A TMDB key added after a folder dresses the library straight away.
+
 ### Changed
 - Lumina now checks for a newer version when it starts, at most once a day. It asks the release feed on GitHub and sends nothing else; a new version is only downloaded and installed if you say yes. Turn it off in Settings, Advanced, Updates. If you upgrade from 0.1, this is switched on for you as well.
 

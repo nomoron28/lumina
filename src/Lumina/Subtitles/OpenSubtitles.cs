@@ -91,6 +91,9 @@ public static class OpenSubtitles
 
     // ---- network ----
 
+    /// <summary>A free request that still checks the key: the Welcome tour's Test button.</summary>
+    public static async Task PingAsync() { using var _ = await Call(HttpMethod.Get, "infos/formats"); }
+
     static async Task<JsonDocument> Call(HttpMethod method, string pathAndQuery, string? json = null)
     {
         for (var attempt = 0; ; attempt++)

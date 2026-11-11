@@ -368,7 +368,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         };
         Loaded += (_, _) => MaybeCheckOnStart();
         if (AppSettings.Bool("general.tour") && !App.Launch.HasMedia)
-            Loaded += (_, _) => Dispatcher.BeginInvoke(() => Onboarding.Show(this, PickAndAddFolder), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            Loaded += (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                var tmdbBefore = Config.Raw("tmdbKey");
+                Onboarding.Show(this, PickAndAddFolder);
+                Refresh();                                                         // the missing-key banner may need to go
+                if (Config.Raw("tmdbKey") != tmdbBefore && Db.Roots().Count > 0) _ = Rescan();   // a key added after a folder: dress the library now
+            }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         ApplyCompactSidebar(AppSettings.Bool("interface.compactSidebar"));
         Topmost = AppSettings.Bool("interface.keepOnTop");
         RestoreWindow();

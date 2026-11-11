@@ -11,7 +11,7 @@ public static class Onboarding
     public static readonly IReadOnlyList<Step> Steps = new Step[]
     {
         new("Point Lumina at your videos", "Choose the folder, or the NAS share, where your films and shows live. Lumina only reads it: no file is ever moved, renamed or uploaded."),
-        new("Let it dress the library", "Posters, summaries and cast come from TMDB, and subtitle search from OpenSubtitles. Both are free and optional: add your keys later in Settings, Accounts."),
+        new("Let it dress the library", "Each service below needs a free key. Paste it and press Test. All three are optional, and you can add them later in Settings, Accounts."),
         new("Make it yours", "Pick how Lumina looks. Everything else, including profiles like Movies, Anime and Night, and every keyboard shortcut, is in Settings."),
     };
 

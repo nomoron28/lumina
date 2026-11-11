@@ -16,20 +16,20 @@ The installer is not code-signed yet. Windows SmartScreen will say "Windows prot
 A short welcome screen offers three optional steps:
 
 1. **Choose a folder** where your films and shows live. A network share works too (`\\nas\media`). Lumina only reads it.
-2. **Keys** for posters and subtitles (below). You can skip this and add them later.
+2. **Keys** for posters, ratings and subtitles (below). Paste each key and press **Test** to check it; **Get a key** opens the free sign-up page. You can skip this and add them later.
 3. **Appearance**: dark, light or follow Windows, and one of nine accent colours.
 
 Lumina then scans the folder. Movies and shows are told apart from file names such as `Movie Name (2014).mkv` and `Show Name S02E05.mkv`; nested folders are fine.
 
 ## Keys for artwork, ratings and subtitles
 
-The services Lumina uses are free but ask each user for their own key, so none is bundled. Open **Settings, Accounts**:
+The services Lumina uses are free but ask each user for their own key, so none is bundled. Add them in the welcome screen, or later in **Settings, Accounts**:
 
 | Service | What you get | Key |
 |---|---|---|
 | TMDB | posters, backdrops, summaries, cast, episode stills | <https://www.themoviedb.org/settings/api> |
 | OMDb | IMDb and Rotten Tomatoes scores | <https://www.omdbapi.com/apikey.aspx> |
-| OpenSubtitles | subtitle search and download | <https://www.opensubtitles.com/consumers> |
+| OpenSubtitles | subtitle search and download | <https://www.opensubtitles.com/en/consumers> |
 | Trakt | two-way watched status; sign in with a device code | <https://trakt.tv/oauth/applications> (client id) |
 
 Paste the key, and Lumina fills in what is missing the next time it scans (or choose **Refresh metadata** on the Folders page). Keys are stored in `config.json` on your computer.
