@@ -63,6 +63,15 @@ Most players are either a bare video window or a heavy media server. Lumina is a
 2. Run the installer, or unzip the portable build anywhere. The portable build keeps all its data in a `data` folder beside it.
 3. Start Lumina, choose a folder in the welcome screen, and you are done.
 
+Or with [Scoop](https://scoop.sh) (the portable build, updated with `scoop update`):
+
+```powershell
+scoop bucket add lumina https://github.com/nomoron28/lumina
+scoop install lumina/lumina
+```
+
+winget (`winget install nomoron28.Lumina`) and Chocolatey (`choco install lumina`) are on their way; they work once each catalogue has accepted the package.
+
 Requirements: Windows 10 version 1809 or newer, 64-bit. Nothing else needs installing; the .NET runtime is included.
 
 > The installer is not code-signed, so Windows SmartScreen shows a warning the first time ("More info", then "Run anyway"). Check the download against `SHA256SUMS.txt` on the release page if you want to be sure.

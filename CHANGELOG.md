@@ -5,6 +5,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Install with Scoop: `scoop bucket add lumina https://github.com/nomoron28/lumina`, then `scoop install lumina/lumina`. Manifests for winget and Chocolatey are ready for submission.
 - **Play with another player**: choose VLC, MPC-HC, MPC-BE, PotPlayer, mpv, mpv.net or any other program in Settings, Playback, Player, or right-click a title and pick **Play with** for one time. The player starts where you left off with your subtitle. VLC and mpv report where you stopped; with the others Lumina asks whether you finished.
 - The welcome tour now sets up the TMDB, OMDb and OpenSubtitles keys: paste each one, press **Test** to see whether it works, or follow **Get a key** to sign up for free. A TMDB key added after a folder dresses the library straight away.
 
