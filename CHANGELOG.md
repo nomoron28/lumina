@@ -4,6 +4,12 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+- The player bar's buttons are grouped by kind: subtitles, audio and speed, then the queue and chapters (the same order as the side panel's tabs), then snapshot and settings, with fullscreen last. A custom order from Customise the controller is kept.
+
+### Fixed
+- A long file name no longer pushes the minimise, maximise and close buttons out of the window during playback; it is shortened with "…" instead.
+
 ## [0.1.1] - 2026-11-10
 
 ### Fixed

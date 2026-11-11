@@ -1339,7 +1339,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         Stage.Child = host;
         foreach (var el in AllPages) el.Visibility = Visibility.Collapsed;
         Stage.Visibility = Visibility.Visible;
-        Bar.Title = AppSettings.Bool("interface.showFileName") ? Path.GetFileName(path) : "";
+        BarTitle.Text = AppSettings.Bool("interface.showFileName") ? Path.GetFileName(path) : "";
         // Hwnd exists only once the host is in the visual tree.
         host.Loaded += (_, _) =>
         {
@@ -2676,6 +2676,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         Bar.Width = Stage.IsVisible ? double.NaN : 170;
         DragStrip.Visibility = Stage.IsVisible ? Visibility.Collapsed : Visibility.Visible;
         TitleRow.Height = new GridLength(strip ? 32 : 0);
+        BarTitle.Visibility = strip ? Visibility.Visible : Visibility.Collapsed;
         if (strip) Bar.SetResourceReference(System.Windows.Controls.Control.BackgroundProperty, "Lumina.Brush.Bg");
         else Bar.Background = System.Windows.Media.Brushes.Transparent;
     }
@@ -2740,7 +2741,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         _mpv = null;
         Stage.Child = null;
         Stage.Visibility = Visibility.Collapsed;
-        Bar.Title = "";
+        BarTitle.Text = "";
     }
 
     void Stop()

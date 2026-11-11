@@ -19,7 +19,7 @@ local FONT = "Garet Book"
 local FONT_BOLD = "Garet Heavy"
 
 -- Set from Settings through script-opts=lumina-osc-<name>=<value>.
-local opt = { hide_ms = 2600, autohide = "always", skip = 10, click = "none", dclick = "fullscreen", wheel = "volume", controls = "chap+cc+audio+speed+queue+gear+snap", style = "classic", thumbs = "yes", theme = "dark", accent = "5CE1C6" }
+local opt = { hide_ms = 2600, autohide = "always", skip = 10, click = "none", dclick = "fullscreen", wheel = "volume", controls = "cc+audio+speed+queue+chap+snap+gear", style = "classic", thumbs = "yes", theme = "dark", accent = "5CE1C6" }
 opt.font = "garet"
 require("mp.options").read_options(opt, "lumina-osc")
 if opt.font == "system" then FONT, FONT_BOLD = "Segoe UI", "Segoe UI" end     -- no Garet files (the public source has none)
@@ -27,7 +27,7 @@ local HIDE_AFTER = opt.hide_ms / 1000
 
 -- Which optional buttons sit in the right cluster, left to right. Unknown names and repeats are dropped,
 -- the gear is always there (it holds Settings access), and an empty list means the default order.
-local DEFAULT_CONTROLS = { "chap", "cc", "audio", "speed", "queue", "gear", "snap" }
+local DEFAULT_CONTROLS = { "cc", "audio", "speed", "queue", "chap", "snap", "gear" }
 local function parse_controls(text)
     local known = {}
     for _, n in ipairs(DEFAULT_CONTROLS) do known[n] = true end
