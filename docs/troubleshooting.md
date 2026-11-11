@@ -51,7 +51,7 @@ Delete `lumina.db` to start the library afresh (your files are never touched). L
 
 **Does Lumina change my files?** No. It reads them. It never moves, renames, tags or uploads them.
 
-**What does Lumina send over the network?** Only what you set up: titles and years to TMDB (artwork and details) and OMDb (ratings), a file hash and title to OpenSubtitles when you search, watched status to Trakt if you connect it, and, only if you turn update checks on, a request to the release address. No account, no analytics, no crash reports.
+**What does Lumina send over the network?** Only what you set up: titles and years to TMDB (artwork and details) and OMDb (ratings), a file hash and title to OpenSubtitles when you search, watched status to Trakt if you connect it, and, at most once a day, a request to the release address to see whether there is a newer version (turn it off in Settings, Advanced, Updates). Nothing is downloaded or installed without asking you. No account, no analytics, no crash reports.
 
 **Is my TMDB key safe?** It is stored in `config.json` on your computer and sent only to TMDB. Network share passwords are stored in Windows Credential Manager.
 

@@ -293,8 +293,8 @@ public static class Catalog
         Text("traktClientSecret", "accounts", "Trakt", "Client secret (optional)", "", "Only if your Trakt app has one. Changing either value signs you out of Trakt.", kind: Kind.Secret),
 
         // ---------------- Advanced ----------------
-        Toggle("updates.onStart", "advanced", "Updates", "Check for updates when Lumina starts", false,
-            "Off by default: Lumina only contacts the update address when you press the button or turn this on."),
+        Toggle("updates.onStart", "advanced", "Updates", "Check for updates when Lumina starts", true,
+            "At most once a day Lumina asks the update address whether there is a newer version. Nothing is downloaded or installed without asking you. Turn this off and Lumina only checks when you press the button."),
         Text("updates.feedUrl", "advanced", "Updates", "Update address", "https://github.com/nomoron28/lumina/releases/latest/download/latest.json",
             "Where Lumina looks for a newer version: the latest GitHub release by default. Must start with https://. Leave empty to turn updates off.", "https://github.com/nomoron28/lumina/releases/latest/download/latest.json"),
         Button("updates.check", "advanced", "Updates", "Check for updates now", "check-updates", "Shows what changed before anything is downloaded. The file is checked against its checksum before it runs."),

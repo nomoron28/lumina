@@ -17,7 +17,7 @@ function Start-Lumina([string[]]$File, [hashtable]$Config = @{}, [string]$Page =
     New-Item -ItemType Directory -Force "$dir\snaps" | Out-Null
     $pipe = "lumina-e2e-" + [guid]::NewGuid().ToString("N").Substring(0, 6)
     $cfg = @{ mpvOptions = "input-ipc-server=\\.\pipe\$pipe`npause=yes"; "snapshots.folder" = "$dir\snaps" }
-    $cfg["general.tour"] = "false"; $cfg["interface.seekThumbs"] = "false"; $cfg["interface.controllerStyle"] = "classic";   # tests turn the extras off unless a part is about them
+    $cfg["general.tour"] = "false"; $cfg["interface.seekThumbs"] = "false"; $cfg["interface.controllerStyle"] = "classic"; $cfg["updates.onStart"] = "false"   # tests turn the extras (and the network) off unless a part is about them
     foreach ($k in $Config.Keys) { $cfg[$k] = $Config[$k] }
     ($cfg | ConvertTo-Json) | Set-Content "$dir\config.json" -Encoding utf8
     $env:LUMINA_THUMBS = "$dir\thumbs"; $env:LUMINA_SUBS = "$dir\subs"       # downloaded subtitles stay in the run's own folder, never the real cache
