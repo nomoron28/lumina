@@ -41,7 +41,7 @@ powershell -File scripts\gate.ps1 -SkipUi            # build, tokens, tests, bud
 powershell -File scripts\gate.ps1 -Soak 30 -Package  # adds a 30 minute playback soak and the installer test
 ```
 
-Stages: a warning-free build, the design-token and contrast check (dark and light), fixtures, unit and headless tests, a **real-input tour** (`scripts/e2e.ps1`), start-up and memory budgets, an optional soak, and an install, upgrade, downgrade-refusal and uninstall test of the packaged installer.
+Stages: a warning-free build, the design-token and contrast check (dark and light), fixtures, unit and headless tests, a **real-input tour** (`scripts/e2e.ps1`), start-up and memory budgets, an optional soak, and an install, in-app update (the older build downloads, verifies and installs the new one from a local feed), downgrade-refusal and uninstall test of the packaged installer.
 
 > **The real-input tour drives your actual mouse and keyboard** (it clicks every control of the app). Run it only when you are not using the computer, and do not touch the mouse while it runs. Use `-SkipUi` to leave it out.
 
