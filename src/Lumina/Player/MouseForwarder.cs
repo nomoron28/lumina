@@ -64,6 +64,8 @@ public sealed class MouseForwarder
     public void Touch(string phase, int x, int y)
     {
         WakeCursor();
+        // first, so the controller can tell a swipe (seek, volume, brightness) from a tap before the button events arrive
+        Send("script-message", "lumina-touch", phase, x.ToString(), y.ToString());
         Send("mouse", x.ToString(), y.ToString());
         switch (phase)
         {
