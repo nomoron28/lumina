@@ -227,6 +227,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 Add(en.IsShow ? "This is a movie, not a show" : "This is a TV show, not a movie", () => _ = SetKind(
                     en.IsShow ? en.Items.Select(i => i.Path) : en.Items.Select(i => Path.GetDirectoryName(i.Path) ?? i.Path).Distinct(StringComparer.OrdinalIgnoreCase),
                     en.IsShow ? "movie" : "show"));
+                AddMoveItems(menu, en.Items, en);
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(en.Next.Path), Explorer.CanReveal(en.Next.Path));
                 Add("Hide from library...", () => HideItems(en.Items, en.Title));
@@ -242,12 +243,70 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                     Add(season.All(i => i.Watched) ? "Mark season as unwatched" : "Mark season as watched", () => SetWatched(season, !season.All(i => i.Watched)));
                     Add("This file is a movie, not an episode", () => _ = SetKind(new[] { ep.Path }, "movie"));
                 }
+                AddMoveItems(menu, new[] { ep }, _entries.FirstOrDefault(x => x.Items.Any(i => i.Id == ep.Id)));
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(ep.Path), Explorer.CanReveal(ep.Path));
                 Add("Hide from library...", () => HideItems(new[] { ep }, ep.EpisodeTitle));
                 break;
         }
         menu.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Right-click, Move into show: specials (or any episodes) filed as a show of their own go into another show's season,
+    /// remembered across rescans (issue #16). "Make this its own show again" undoes it.
+    /// </summary>
+    void AddMoveItems(ContextMenu menu, IReadOnlyList<MediaItem> items, LibraryEntry? self)
+    {
+        var paths = items.Select(i => i.Path).ToList();
+        var targets = _entries.Where(x => x.IsShow && x != self).OrderBy(x => x.Title, StringComparer.CurrentCultureIgnoreCase).ToList();
+        if (targets.Count > 0)
+        {
+            var move = new MenuItem { Header = "Move into show" };
+            System.Windows.Automation.AutomationProperties.SetName(move, "Move into show");
+            foreach (var t in targets)
+            {
+                var show = new MenuItem { Header = t.Title };
+                System.Windows.Automation.AutomationProperties.SetName(show, t.Title);
+                var key = t.Items.GroupBy(i => (i.FileTitle, i.FileYear)).OrderByDescending(g => g.Count()).First().Key;   // the name its files share
+                var seasons = t.Items.Select(i => i.Season ?? 1).Distinct().OrderBy(s => s).ToList();
+                foreach (var s in seasons.Contains(0) ? seasons : seasons.Prepend(0))
+                    show.Items.Add(SeasonItem(s == 0 ? "Specials" : $"Season {s}", s));
+                show.Items.Add(SeasonItem($"New season {seasons.Max() + 1}", seasons.Max() + 1));
+                move.Items.Add(show);
+
+                MenuItem SeasonItem(string header, int season)
+                {
+                    var mi = new MenuItem { Header = header };
+                    System.Windows.Automation.AutomationProperties.SetName(mi, $"{t.Title}, {header}");
+                    mi.Click += (_, _) => _ = MoveInto(paths, key.FileTitle, key.FileYear, season, $"Moving into {t.Title}, {header}.");
+                    return mi;
+                }
+            }
+            menu.Items.Add(move);
+        }
+        if (Db.ShowOverrides() is var moved && paths.Any(moved.ContainsKey))
+        {
+            var undo = new MenuItem { Header = "Make this its own show again" };
+            System.Windows.Automation.AutomationProperties.SetName(undo, "Make this its own show again");
+            undo.Click += (_, _) => _ = MoveInto(paths.Where(moved.ContainsKey).ToList(), null, null, 0, "Filing these as they are named.");
+            menu.Items.Add(undo);
+        }
+    }
+
+    async Task MoveInto(IReadOnlyList<string> paths, string? title, int? year, int season, string status)
+    {
+        try
+        {
+            Db.SetShowOverride(paths, title, year, season);
+            Status.Text = status;
+            await Rescan();
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException e)
+        {
+            Lumina.Diagnostics.Log.Error("Move into show failed", e);
+            Status.Text = "Could not move that: " + e.Message;
+        }
     }
 
     void Reveal(string path)

@@ -181,6 +181,10 @@ public static class Db
         """
         CREATE TABLE kind_override(path TEXT PRIMARY KEY COLLATE NOCASE, kind TEXT NOT NULL);
         """,
+        // v7: episodes the user moved into another show and season (specials filed as a show of their own, issue #16)
+        """
+        CREATE TABLE show_override(path TEXT PRIMARY KEY COLLATE NOCASE, title TEXT NOT NULL, year INTEGER, season INTEGER NOT NULL);
+        """,
     };
 
     public const string VersionKey = "schema_version";
@@ -693,6 +697,44 @@ public static class Db
         using var r = Cmd(c, "SELECT path, kind FROM kind_override").ExecuteReader();
         while (r.Read()) d[r.GetString(0)] = r.GetString(1);
         return d;
+    }
+
+    /// <summary>Right-click, Move into show: these files become episodes of that show's season, kept across rescans. A null title undoes it.</summary>
+    public static void SetShowOverride(IEnumerable<string> paths, string? title, int? year, int season)
+    {
+        using (var c = Open())
+        using (var tx = c.BeginTransaction())
+        {
+            foreach (var p in paths)
+            {
+                var cmd = title == null
+                    ? Cmd(c, "DELETE FROM show_override WHERE path=@p", ("@p", p))
+                    : Cmd(c, "INSERT INTO show_override(path,title,year,season) VALUES(@p,@t,@y,@s) ON CONFLICT(path) DO UPDATE SET title=@t,year=@y,season=@s",
+                        ("@p", p), ("@t", title), ("@y", year), ("@s", season));
+                cmd.Transaction = tx; cmd.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+        KvSet("parse_v", "");
+    }
+
+    public static Dictionary<string, (string Title, int? Year, int Season)> ShowOverrides()
+    {
+        var d = new Dictionary<string, (string, int?, int)>(StringComparer.OrdinalIgnoreCase);
+        using var c = Open();
+        using var r = Cmd(c, "SELECT path, title, year, season FROM show_override").ExecuteReader();
+        while (r.Read()) d[r.GetString(0)] = (r.GetString(1), r.IsDBNull(2) ? null : r.GetInt32(2), r.GetInt32(3));
+        return d;
+    }
+
+    /// <summary>Unmatched files with the same name and year as matched ones take their match, without asking TMDB again.</summary>
+    public static void ShareMatches()
+    {
+        using var c = Open();
+        Cmd(c, """
+            UPDATE media SET tmdb_id=(SELECT m2.tmdb_id FROM media m2 WHERE m2.kind=media.kind AND m2.title=media.title AND m2.year IS media.year AND m2.tmdb_id>0 LIMIT 1)
+            WHERE tmdb_id IS NULL AND EXISTS(SELECT 1 FROM media m2 WHERE m2.kind=media.kind AND m2.title=media.title AND m2.year IS media.year AND m2.tmdb_id>0)
+            """).ExecuteNonQuery();
     }
 
     public static int HiddenCount()
