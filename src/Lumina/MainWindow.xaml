@@ -448,6 +448,10 @@
                             </ItemsControl>
                         </ScrollViewer>
                     </StackPanel>
+                    <StackPanel x:Name="DExtrasBlock" Margin="44,18,44,0" HorizontalAlignment="Stretch" Visibility="Collapsed">
+                        <TextBlock Text="Extras" Style="{StaticResource Lumina.Text.Section}" Margin="0,0,0,12" />
+                        <WrapPanel x:Name="DExtras" AutomationProperties.Name="Extras" />
+                    </StackPanel>
                     <Grid x:Name="DMovieBlock" Margin="44,22,44,48">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

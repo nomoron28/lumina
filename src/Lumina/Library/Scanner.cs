@@ -7,6 +7,8 @@ public static class Scanner
     static readonly HashSet<string> Ext = new(StringComparer.OrdinalIgnoreCase)
         { ".mkv", ".mp4", ".m4v", ".mov", ".avi", ".ts", ".m2ts", ".mts", ".webm", ".wmv", ".flv", ".iso" };
 
+    public static bool IsVideo(string path) => Ext.Contains(Path.GetExtension(path));
+
     static readonly EnumerationOptions Opts = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
 
     /// <summary>Scan every root; returns number of files added or changed.</summary>
@@ -35,6 +37,7 @@ public static class Scanner
         foreach (var f in Directory.EnumerateFiles(root, "*", Opts))
         {
             if (!Ext.Contains(Path.GetExtension(f))) continue;
+            if (Forced(overrides, f) == null && Extras.Skip(f, root)) continue;   // trailers and samples belong to a title (unless the user filed one)
             var fi = new FileInfo(f);
             var name = Path.GetFileNameWithoutExtension(f);
             var p = Forced(overrides, f) == "movie" ? NameParser.AsMovie(name) : InSeasonFolder(f, root, NameParser.Parse(name));
