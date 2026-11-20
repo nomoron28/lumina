@@ -21,6 +21,40 @@ public record GenreTile(string Kind, string Name, int Count, string? Backdrop, s
     }
 }
 
+/// <summary>
+/// Which rows Home shows and in what order (issue #15). Saved as every row's name joined with +, a hidden one with a leading
+/// minus ("recent+continue+-unwatched"). Rows Lumina adds later are not in an older text, so they appear, shown, at the end.
+/// </summary>
+public static class HomeLayout
+{
+    public static readonly IReadOnlyList<(string Id, string Label)> Known = new[]
+    {
+        ("continue", "Continue watching"), ("favourites", "Favourites"), ("recent", "Recently added"), ("filmgenres", "Film genres"),
+        ("showgenres", "TV genres"), ("unwatched", "Unwatched"), ("toprated", "Top rated films"), ("movies", "Movies"), ("shows", "TV shows"),
+    };
+
+    public static (List<string> Order, HashSet<string> Hidden) Parse(string? text)
+    {
+        var ids = Known.Select(k => k.Id).ToHashSet();
+        var order = new List<string>();
+        var hidden = new HashSet<string>();
+        foreach (var raw in (text ?? "").Split(new[] { '+', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var id = raw.TrimStart('-');
+            if (!ids.Contains(id) || order.Contains(id)) continue;
+            order.Add(id);
+            if (raw.StartsWith('-')) hidden.Add(id);
+        }
+        order.AddRange(Known.Select(k => k.Id).Where(id => !order.Contains(id)));
+        return (order, hidden);
+    }
+
+    public static string Format(IEnumerable<string> order, IReadOnlySet<string> hidden) =>
+        string.Join("+", order.Select(id => hidden.Contains(id) ? "-" + id : id));
+
+    public static bool IsDefault(string? text) => Parse(text) is var (o, h) && h.Count == 0 && o.SequenceEqual(Known.Select(k => k.Id));
+}
+
 /// <summary>The rows Home adds on top of the basic shelves: genres, top rated, favourites. Pure, so ordering and grouping are unit tested.</summary>
 public static class HomeShelves
 {

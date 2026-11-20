@@ -117,6 +117,10 @@ public static class Catalog
             "Choose which buttons the on-screen controller shows and in what order."),
         Text("interface.controls", "interface", "Controller", "Controller buttons (advanced)", "cc+audio+speed+queue+chap+snap+gear",
             "What Customise the controller saves. Names joined with +, left to right. The gear always stays.", "chap+cc+audio"),
+        Button("interface.home", "interface", "Home", "Customise Home", "edit-home",
+            "Choose which rows Home shows and in what order."),
+        Text("interface.homeRows", "interface", "Home", "Home rows (advanced)", "",
+            "What Customise Home saves. Row names joined with +, top to bottom; a minus hides one.", "recent+continue+-unwatched"),
         Slider("interface.hideAfter", "interface", "Player controls", "Hide after", 2.6, 1, 10, 0.5, "s"),
 
         // ---------------- Privacy ----------------

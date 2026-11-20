@@ -7,6 +7,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ### Added
 - **Extras** on a title's page: trailers and bonus videos named the way Plex and Jellyfin name them (`Inception-trailer.mkv`, `trailer.mkv` in the film's folder, or files in `Extras`, `Trailers`, `Featurettes`, `Behind The Scenes`, `Deleted Scenes` and similar folders). Press one to play it.
 - Right-click a show or an episode and choose **Move into show** to put it in another show's Specials or one of its seasons, for example specials that Lumina filed as a show of their own ([#16](https://github.com/nomoron28/lumina/issues/16)). The move is kept across rescans; **Make this its own show again** undoes it.
+- **Customise Home**: hide Home's rows or change their order, from the link at the bottom of Home or in Settings, Interface ([#15](https://github.com/nomoron28/lumina/issues/15)).
 
 ### Fixed
 - Trailers, featurettes and release samples no longer appear in the library as films of their own. They leave on the next scan.
