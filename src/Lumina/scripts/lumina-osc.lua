@@ -1976,6 +1976,7 @@ end
 
 local function hit(x, y)
     if st.skip_rect and in_rect(st.skip_rect, x, y) then return "skip" end
+    for name, r in pairs(st.upnext_rects or {}) do if in_rect(r, x, y) then return name end end
     if st.panel then
         for _, q in ipairs(st.grects or {}) do
             if in_rect(q, x, y) then return q.name end
@@ -2119,6 +2120,7 @@ end
 
 local function activate(name)
     if name == "skip" then if st.skip_now then st.skip_now() end return end
+    if name == "upnext-play" or name == "upnext-cancel" then if st.upnext_now then st.upnext_now(name:sub(8)) end return end
     if is_dock() and dock_activate(name) then return end
     if name == "play" then
         if eof() then mp.commandv("seek", "0", "absolute") end
@@ -2257,35 +2259,68 @@ local function skip_update()
         show_toast("Skipped " .. g.kind, 1.6)
         return
     end
+    -- Up Next: from its moment on, a card counts down the next 10 seconds of playback (pausing pauses it), then plays the
+    -- next episode. Cancel keeps this one on its last frame. The card does the Skip credits button's job, so that one goes.
+    local un = st.upnext
+    local left = (un and not un.off and t and t >= un.at) and math.max(0, math.ceil(un.at + 10 - t)) or nil
+    if left == 0 and not un.fired then un.fired = true; mp.commandv("script-message", "lumina-next") end
+    if left and g and g.kind == "credits" then g = nil end
     local now = g and g.kind or ""
     if now ~= st.skip_pub then st.skip_pub = now; publish("skip", now) end   -- what Skip would skip now (read by tests)
+    local upnow = left and tostring(left) or ""
+    if upnow ~= st.upnext_pub then st.upnext_pub = upnow; publish("upnext", upnow) end
     local w, h = mp.get_osd_size()
     local data = ""
-    st.skip_rect = nil
-    if g and not st.hideui and w and w > 0 and h > 0 then
+    st.skip_rect, st.upnext_rects = nil, nil
+    if (g or left) and not st.hideui and w and w > 0 and h > 0 then
         local s = clamp(h / 820, 0.85, 1.8)
-        local label = SKIP_LABEL[g.kind] or "Skip"
-        local r = { x = 0, y = h - 250 * s, w = (34 + 9.5 * #label) * s, h = 46 * s }
-        r.x = w - 36 * s - r.w
-        st.skip_rect = r
         local saved = L
         L = {}
         skip_ov.res_x, skip_ov.res_y = w, h
-        -- a solid dark pill: it sits over the bare picture when the controls are hidden, so the glass pill would not read
-        shape(rrect(r.x, r.y, r.w, r.h, r.h / 2), "1C1A18", st.hover == "skip" and 0x08 or 0x28)
-        text(r.x + r.w / 2, r.y + r.h / 2, label, 17 * s, C.text, 0, 5, true)
+        -- solid dark shapes: they sit over the bare picture when the controls are hidden, so the glass pill would not read
+        if left then
+            local cw, ch = 340 * s, 128 * s
+            local card = { x = w - 36 * s - cw, y = h - 250 * s - ch + 46 * s, w = cw, h = ch }
+            shape(rrect(card.x, card.y, card.w, card.h, 16 * s), "1C1A18", 0x20)
+            text(card.x + 20 * s, card.y + 16 * s, "Up next  ·  " .. left, 14 * s, C.muted, 0, 7, false)
+            text(card.x + 20 * s, card.y + 38 * s, clip_text_basic(un.title, 34), 18 * s, C.text, 0, 7, true)
+            local play = { x = card.x + 20 * s, y = card.y + card.h - 54 * s, w = 130 * s, h = 38 * s }
+            local cancel = { x = play.x + play.w + 10 * s, y = play.y, w = 110 * s, h = 38 * s }
+            shape(rrect(play.x, play.y, play.w, play.h, play.h / 2), C.text, st.hover == "upnext-play" and 0x00 or 0x10)
+            text(play.x + play.w / 2, play.y + play.h / 2, "Play now", 15 * s, "1C1A18", 0, 5, true)
+            shape(rrect(cancel.x, cancel.y, cancel.w, cancel.h, cancel.h / 2), C.text, st.hover == "upnext-cancel" and 0xA0 or 0xC8)
+            text(cancel.x + cancel.w / 2, cancel.y + cancel.h / 2, "Cancel", 15 * s, C.text, 0, 5, true)
+            st.upnext_rects = { ["upnext-play"] = play, ["upnext-cancel"] = cancel }
+        else
+            local label = SKIP_LABEL[g.kind] or "Skip"
+            local r = { x = 0, y = h - 250 * s, w = (34 + 9.5 * #label) * s, h = 46 * s }
+            r.x = w - 36 * s - r.w
+            st.skip_rect = r
+            shape(rrect(r.x, r.y, r.w, r.h, r.h / 2), "1C1A18", st.hover == "skip" and 0x08 or 0x28)
+            text(r.x + r.w / 2, r.y + r.h / 2, label, 17 * s, C.text, 0, 5, true)
+        end
         data = table.concat(L, "\n")
         L = saved
     end
     if data ~= skip_ov.data then skip_ov.data = data; skip_ov:update() end
 end
 
+st.upnext_now = function(which)
+    local un = st.upnext
+    if not un or un.fired then return end
+    un.off = true
+    if which == "play" then un.fired = true; mp.commandv("script-message", "lumina-next")
+    else mp.commandv("script-message", "lumina-upnext-cancel") end
+    skip_update()
+end
+
 mp.register_script_message("lumina-segments", function(json)
     local t = require("mp.utils").parse_json(json)
-    st.segments, st.skip_done, st.has_marks = {}, {}, false
+    st.segments, st.skip_done, st.has_marks, st.upnext = {}, {}, false, nil
     if type(t) == "table" then
         st.skip_auto = t.auto == true
         st.has_marks = t.marks == true
+        if type(t.upnext) == "table" and tonumber(t.upnext.at) then st.upnext = { title = tostring(t.upnext.title or ""), at = tonumber(t.upnext.at) } end
         for _, g in ipairs(t.segments or {}) do
             if type(g) == "table" and tonumber(g.s) and tonumber(g.e) and tonumber(g.e) > tonumber(g.s) then
                 st.segments[#st.segments + 1] = { kind = tostring(g.kind or ""), s = tonumber(g.s), e = tonumber(g.e) }
@@ -2295,6 +2330,7 @@ mp.register_script_message("lumina-segments", function(json)
     skip_update()
 end)
 mp.register_script_message("lumina-skip-segment", function() st.skip_now() end)
+mp.register_script_message("lumina-upnext", function(which) st.upnext_now(which) end)   -- "play" or "cancel"
 mp.observe_property("time-pos", "number", function() skip_update() end)
 mp.observe_property("osd-dimensions", "native", function() skip_update() end)
 
