@@ -111,6 +111,7 @@ Write-File 'packaging/chocolatey/lumina.nuspec' @"
     <authors>nomoron28</authors>
     <owners>nomoron28</owners>
     <projectUrl>https://github.com/$repo</projectUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/$repo@v$Version/assets/brand/app-icon/app-icon-A-glow-256.png</iconUrl>
     <packageSourceUrl>https://github.com/$repo/tree/main/packaging/chocolatey</packageSourceUrl>
     <licenseUrl>https://github.com/$repo/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
