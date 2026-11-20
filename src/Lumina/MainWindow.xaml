@@ -292,6 +292,7 @@
                         </UniformGrid>
 
                         <app:Shelf x:Name="ShelfFavourites" Title="Favourites" />
+                        <app:Shelf x:Name="ShelfCollections" Title="Collections" ShowSeeAll="False" CardTemplate="{StaticResource Lumina.GenreTile}" />
                         <app:Shelf x:Name="ShelfRecent" Title="Recently added" />
                         <app:Shelf x:Name="ShelfFilmGenres" Title="Film genres" ShowSeeAll="False" CardTemplate="{StaticResource Lumina.GenreTile}" />
                         <app:Shelf x:Name="ShelfShowGenres" Title="TV genres" ShowSeeAll="False" CardTemplate="{StaticResource Lumina.GenreTile}" />

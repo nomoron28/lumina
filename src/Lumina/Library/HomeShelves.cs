@@ -7,6 +7,9 @@ public record GenreTile(string Kind, string Name, int Count, string? Backdrop, s
     public string Title => Name;
     public string CountText => Count == 1 ? "1 title" : $"{Count} titles";
 
+    /// <summary>Set when the tile is one of the user's collections instead of a genre.</summary>
+    public long CollectionId { get; init; }
+
     /// <summary>The tint laid over the backdrop: the genre's two colours, mostly opaque so white text always reads.</summary>
     public System.Windows.Media.Brush Overlay
     {
@@ -29,7 +32,7 @@ public static class HomeLayout
 {
     public static readonly IReadOnlyList<(string Id, string Label)> Known = new[]
     {
-        ("continue", "Continue watching"), ("favourites", "Favourites"), ("recent", "Recently added"), ("filmgenres", "Film genres"),
+        ("continue", "Continue watching"), ("favourites", "Favourites"), ("collections", "Collections"), ("recent", "Recently added"), ("filmgenres", "Film genres"),
         ("showgenres", "TV genres"), ("unwatched", "Unwatched"), ("toprated", "Top rated films"), ("movies", "Movies"), ("shows", "TV shows"),
     };
 
