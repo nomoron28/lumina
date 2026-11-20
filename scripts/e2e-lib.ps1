@@ -83,6 +83,18 @@ function Find-Element($app, [string]$name, [int]$timeoutMs = 3000, [switch]$Text
     return $null
 }
 
+# Presses a control through UI Automation (Invoke, Select or Toggle) instead of the mouse: safe while someone uses the PC.
+function Invoke-Element($app, [string]$name, [int]$timeoutMs = 5000) {
+    $e = Find-Element $app $name $timeoutMs
+    if (-not $e) { throw "control '$name' not found" }
+    $p = $null
+    if ($e.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$p)) { $p.Invoke() }
+    elseif ($e.TryGetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern, [ref]$p)) { $p.Select() }
+    elseif ($e.TryGetCurrentPattern([Windows.Automation.TogglePattern]::Pattern, [ref]$p)) { $p.Toggle() }
+    else { throw "control '$name' cannot be pressed through UI Automation" }
+    Start-Sleep -Milliseconds 500
+}
+
 function Click-Element($app, [string]$name, [switch]$Right) {
     $e = Find-Element $app $name
     if (-not $e) { throw "control '$name' not found" }

@@ -1,4 +1,4 @@
-# Installs, runs, upgrades, refuses a downgrade, and uninstalls the real installer and portable zip, in temporary folders.
+# Installs, runs, updates itself from inside the app, refuses a downgrade, and uninstalls the real installer and portable zip, in temporary folders.
 # It never touches your real Lumina settings: data clean-up is aimed at a test folder, logins use a test prefix,
 # and file types are registered in a private registry branch. Run scripts\package.ps1 first.
 param([switch]$Force)
@@ -13,6 +13,7 @@ $uninstKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$appId"
 $v1 = (Get-ChildItem $art -Filter "Lumina-*-setup.exe" | Sort-Object Name | Select-Object -First 1)
 if (-not $v1) { throw "no installer in artifacts, run scripts\package.ps1 first" }
 $ver1 = [regex]::Match($v1.Name, 'Lumina-(.+)-setup').Groups[1].Value
+$ver2 = "9.9." + (Get-Date -Format "HHmm")   # the "new release" this run builds: always newer than anything real, never published
 if ((Test-Path $uninstKey) -and -not $Force) { throw "Lumina is already installed for this user. This test would replace it. Use -Force only on a development machine." }
 Get-Process Lumina -ErrorAction SilentlyContinue | Stop-Process -Force
 
@@ -56,18 +57,38 @@ try {
         Check "no errors in its log" (Error-Count $app) 0
     } finally { Stop-Lumina $app }
 
-    Write-Host "Upgrade"
-    & "$PSScriptRoot\package.ps1" -Version "0.1.1" -SkipPublish | Out-Null
-    $v2 = Join-Path $art "Lumina-0.1.1-setup.exe"
-    Check "upgrade installer exits 0" (Run-Setup $v2 @("/TASKS=")) 0
-    Check "version is now 0.1.1" (Installed-Version) "0.1.1"
+    Write-Host "In-app update from $ver1 to $ver2"
+    & "$PSScriptRoot\package.ps1" -Version $ver2 -SkipPublish | Out-Null
+    $v2 = Join-Path $art "Lumina-$ver2-setup.exe"
+    # a local release feed, the way package.ps1 writes latest.json for GitHub
+    $feedDir = Join-Path $tmp "feed"; New-Item -ItemType Directory $feedDir | Out-Null
+    Copy-Item $v2 $feedDir
+    $feed = @{ version = $ver2; file = "Lumina-$ver2-setup.exe"; sha256 = (Get-FileHash $v2 -Algorithm SHA256).Hash.ToLower(); size = (Get-Item $v2).Length; notes = "" } | ConvertTo-Json
+    [IO.File]::WriteAllText("$feedDir\latest.json", $feed)
+    $port = Get-Random -Minimum 40000 -Maximum 50000
+    $py = Start-Process python -ArgumentList "`"$PSScriptRoot\fake-server.py`" $port `"$feedDir`"" -PassThru -WindowStyle Hidden
+    try {
+        foreach ($i in 1..40) { try { Invoke-WebRequest "http://127.0.0.1:$port/latest.json" -UseBasicParsing | Out-Null; break } catch { Start-Sleep -Milliseconds 250 } }
+        $env:LUMINA_UPDATE_FEED = "http://127.0.0.1:$port/latest.json"
+        $app = Start-Lumina "" @{} "settings" -RegBranch $regBranch -CredPrefix $credPrefix   # the installer it starts inherits the private registry branch
+        try {
+            # UI Automation presses the buttons (no real mouse or keyboard), so this runs while someone is at the PC
+            Invoke-Element $app "Advanced"
+            Invoke-Element $app "Check for updates now"
+            CheckTrue "the old version offers the new one" (Find-Element $app "Lumina $ver2 is available" 8000 -Text)
+            Invoke-Element $app "Download and install"
+            $until = (Get-Date).AddMinutes(3)
+            while ((Installed-Version) -ne $ver2 -and (Get-Date) -lt $until) { Start-Sleep -Seconds 2 }
+            Check "it downloaded, verified and installed the new version" (Installed-Version) $ver2
+        } finally { Remove-Item Env:\LUMINA_UPDATE_FEED -ErrorAction SilentlyContinue; Get-Process Lumina -ErrorAction SilentlyContinue | Stop-Process -Force }
+    } finally { if (-not $py.HasExited) { Stop-Process $py -Force } }
     CheckTrue "program files still there" (Test-Path "$dir\Lumina.exe")
-    CheckTrue "data folder untouched by the upgrade" (Test-Path "$dataRoot\Roaming\Lumina\config.json")
+    CheckTrue "data folder untouched by the update" (Test-Path "$dataRoot\Roaming\Lumina\config.json")
 
     Write-Host "Downgrade is refused"
     $rc = Run-Setup $v1.FullName @("/TASKS=")
     CheckTrue "older installer exits non-zero" ($rc -ne 0)
-    Check "version stays 0.1.1" (Installed-Version) "0.1.1"
+    Check "version stays $ver2" (Installed-Version) $ver2
 
     Write-Host "Uninstall keeps your data by default"
     $un = (Get-ItemProperty $uninstKey).UninstallString.Trim('"'); Set-TestEnv
@@ -115,7 +136,7 @@ try {
     (cmdkey /list | Out-String) -split "`n" | Where-Object { $_ -match "Target:.*$([regex]::Escape($credPrefix))" } | ForEach-Object { if ($_ -match "Target:\s*(\S.*?)\s*$") { cmdkey /delete:$($Matches[1]) | Out-Null } }
     Remove-Item "HKCU:\Software\LuminaInstTest" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $art "Lumina-0.1.1-setup.exe") -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $art "Lumina-$ver2-setup.exe") -ErrorAction SilentlyContinue
 }
 Write-Host ""
 Write-Host "$script:passes passed, $($script:fails.Count) failed"
