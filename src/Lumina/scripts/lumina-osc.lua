@@ -2329,6 +2329,52 @@ mp.register_script_message("lumina-segments", function(json)
     end
     skip_update()
 end)
+-- Touch swipes on the bare picture (a finger that lands on a control is left to that control): sideways seeks, a full
+-- width being 90 seconds, applied when the finger lifts; up and down on the right third is volume, on the left third the
+-- picture's brightness. A swipe swallows the release, so it does not also pause. Mouse drags never get here.
+local function touch_size()
+    local w, h = mp.get_osd_size()
+    if not w or w <= 0 or not h or h <= 0 then w, h = 1280, 720 end      -- no video output (tests): a typical window
+    return w, h
+end
+
+mp.register_script_message("lumina-touch", function(phase, xs, ys)
+    local x, y = tonumber(xs), tonumber(ys)
+    if not x or not y then return end
+    local w, h = touch_size()
+    if phase == "down" then
+        st.gest = (not hit(x, y)) and { x0 = x, y0 = y } or nil
+        return
+    end
+    local g = st.gest
+    if not g then return end
+    local dx, dy = x - g.x0, y - g.y0
+    if not g.mode and not g.none and math.max(math.abs(dx), math.abs(dy)) > clamp(h / 820, 0.85, 1.8) * 36 then
+        if math.abs(dx) > math.abs(dy) * 1.5 then g.mode = "seek"
+        elseif math.abs(dy) > math.abs(dx) * 1.5 and g.x0 > w * 2 / 3 then g.mode = "volume"; g.base = mp.get_property_number("volume") or 100
+        elseif math.abs(dy) > math.abs(dx) * 1.5 and g.x0 < w / 3 then g.mode = "brightness"; g.base = mp.get_property_number("brightness") or 0
+        else g.none = true end                                           -- diagonal, or up and down in the middle: not a gesture
+    end
+    if g.mode == "seek" then
+        g.delta = math.floor(dx / w * 90 + 0.5)
+        show_toast(string.format("%s%d s", g.delta >= 0 and "+" or "-", math.abs(g.delta)), 0.8)
+    elseif g.mode == "volume" then
+        local v = clamp(math.floor(g.base - dy / h * 150 + 0.5), 0, 130)
+        mp.set_property_number("volume", v)
+        show_toast(string.format("Volume %d%%", v), 0.8)
+    elseif g.mode == "brightness" then
+        local v = clamp(math.floor(g.base - dy / h * 150 + 0.5), -100, 100)
+        mp.set_property_number("brightness", v)
+        show_toast(string.format("Brightness %d", v), 0.8)
+    end
+    if phase == "up" then
+        if g.mode == "seek" and g.delta and g.delta ~= 0 then mp.commandv("seek", tostring(g.delta), "relative+exact") end
+        if g.mode or g.none then st.swallow = true end                   -- a finger that travelled was not a tap
+        st.gest = nil
+        publish("gesture", g.mode or "")                                 -- the last swipe (read by tests)
+    end
+end)
+
 mp.register_script_message("lumina-skip-segment", function() st.skip_now() end)
 mp.register_script_message("lumina-upnext", function(which) st.upnext_now(which) end)   -- "play" or "cancel"
 mp.observe_property("time-pos", "number", function() skip_update() end)

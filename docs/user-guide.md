@@ -61,7 +61,7 @@ Pick an embedded or sidecar track from the panel, or press `v` to cycle. **Find 
 
 ### Touch
 
-On a touchscreen: tap the controls, drag along the seek bar and the volume slider, and drag a finger to scroll pages and rows.
+On a touchscreen: tap the controls, drag along the seek bar and the volume slider, and drag a finger to scroll pages and rows. Over the picture, swipe sideways to seek (the whole width is 90 seconds), up or down on the right third for volume, and on the left third for brightness.
 
 ### Fullscreen
 
