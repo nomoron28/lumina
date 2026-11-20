@@ -304,6 +304,18 @@ local function clip_text_basic(str, n)
     return str:sub(1, n - 1) .. "..."
 end
 
+-- Where the intro, recap and credits are: set once on an episode, they count for the rest of its season (the host
+-- keeps them and sends back "lumina-segments"). Shared by the popup menu and the dock's Bookmarks tab.
+local function mark_items()
+    local list = {}
+    for _, m in ipairs({ { "intro", "start", "Intro starts here" }, { "intro", "end", "Intro ends here" }, { "recap", "start", "Recap starts here" },
+                         { "recap", "end", "Recap ends here" }, { "credits", "start", "Credits start here" } }) do
+        list[#list + 1] = { label = m[3], run = function() mp.commandv("script-message", "lumina-mark", m[1], m[2], string.format("%.3f", mp.get_property_number("time-pos") or 0)) end }
+    end
+    if st.has_marks then list[#list + 1] = { label = "Clear skip marks", dim = true, run = function() mp.commandv("script-message", "lumina-mark-clear") end } end
+    return list
+end
+
 local function menu_items(name)
     local items = {}
     local tl = mp.get_property_native("track-list") or {}
@@ -357,6 +369,9 @@ local function menu_items(name)
         end
         items[#items + 1] = { label = "Add a bookmark here", dim = #items > 0, run = function() mp.commandv("script-message", "lumina-bookmark") end }
         if #st.bookmarks > 0 then items[#items + 1] = { label = "Remove all bookmarks", dim = true, run = function() mp.commandv("script-message", "lumina-bookmark-clear") end } end
+        items[#items + 1] = { label = "Skip marks...", dim = true, reopen = "marks", run = function() end }
+    elseif name == "marks" then
+        for _, m in ipairs(mark_items()) do items[#items + 1] = { label = m.label, dim = m.dim, run = m.run } end
     elseif name == "speed" then
         local cur = mp.get_property_number("speed") or 1
         for _, v in ipairs({ 0.5, 0.75, 1.0, 1.25, 1.5, 2.0 }) do
@@ -368,7 +383,7 @@ end
 
 local function open_menu(name)
     if is_dock() then
-        local map = { cc = "subs", audio = "audio", devices = "audio", speed = "playback", chapters = "chapters", bookmarks = "bookmarks" }
+        local map = { cc = "subs", audio = "audio", devices = "audio", speed = "playback", chapters = "chapters", bookmarks = "bookmarks", marks = "bookmarks" }
         if map[name] then dock_open_panel(map[name]) end
         return
     end
@@ -567,6 +582,11 @@ actions["record"] = function() mp.commandv("script-message", "lumina-record") en
 actions["bookmarks"] = function()
     st.gopen = false; publish("gear", "")
     open_menu("bookmarks")
+end
+
+actions["marks"] = function()
+    st.gopen = false; publish("gear", "")
+    open_menu("marks")
 end
 
 local function onoff(v) return v and "On" or "Off" end
@@ -1118,6 +1138,7 @@ local function panel_rows(tab)
         end
         btn("Add a bookmark here", msg("lumina-bookmark"))
         if #st.bookmarks > 0 then btn("Remove all bookmarks", msg("lumina-bookmark-clear")) end
+        for _, m in ipairs(mark_items()) do btn(m.label, m.run) end
     elseif tab == "chapters" then
         local cur = mp.get_property_number("chapter") or -1
         for i, c in ipairs(mp.get_property_native("chapter-list") or {}) do
@@ -1954,6 +1975,7 @@ end
 -- ---------- input ----------
 
 local function hit(x, y)
+    if st.skip_rect and in_rect(st.skip_rect, x, y) then return "skip" end
     if st.panel then
         for _, q in ipairs(st.grects or {}) do
             if in_rect(q, x, y) then return q.name end
@@ -2096,6 +2118,7 @@ local function dock_activate(name)
 end
 
 local function activate(name)
+    if name == "skip" then if st.skip_now then st.skip_now() end return end
     if is_dock() and dock_activate(name) then return end
     if name == "play" then
         if eof() then mp.commandv("seek", "0", "absolute") end
@@ -2204,6 +2227,76 @@ mp.register_script_message("lumina-bookmarks", function(json)
     dirty = true
     publish("bookmark_count", tostring(#st.bookmarks))
 end)
+
+-- Skip intro, recap and credits. The host works out the playing file's segments (its own marks, the season's, chapter
+-- names) and sends them; a button shows while the picture is inside one. It has its own overlay so it stays up while
+-- the controls are hidden. Auto-skip, when the host turns it on, never skips credits (that is where the story may end).
+st.segments, st.skip_auto, st.skip_done = {}, false, {}
+local skip_ov = mp.create_osd_overlay("ass-events")
+skip_ov.z = 5
+local SKIP_LABEL = { intro = "Skip intro", recap = "Skip recap", credits = "Skip credits" }
+
+local function segment_at(t)
+    if not t then return nil end
+    for _, g in ipairs(st.segments) do
+        if t >= g.s and t < g.e - 0.5 then return g end
+    end
+end
+
+st.skip_now = function()
+    local g = segment_at(mp.get_property_number("time-pos"))
+    if g then mp.commandv("seek", string.format("%.3f", g.e), "absolute+exact") end
+end
+
+local function skip_update()
+    local t = mp.get_property_number("time-pos")
+    local g = segment_at(t)
+    if g and st.skip_auto and g.kind ~= "credits" and not st.skip_done[g.kind .. g.s] then
+        st.skip_done[g.kind .. g.s] = true
+        mp.commandv("seek", string.format("%.3f", g.e), "absolute+exact")
+        show_toast("Skipped " .. g.kind, 1.6)
+        return
+    end
+    local now = g and g.kind or ""
+    if now ~= st.skip_pub then st.skip_pub = now; publish("skip", now) end   -- what Skip would skip now (read by tests)
+    local w, h = mp.get_osd_size()
+    local data = ""
+    st.skip_rect = nil
+    if g and not st.hideui and w and w > 0 and h > 0 then
+        local s = clamp(h / 820, 0.85, 1.8)
+        local label = SKIP_LABEL[g.kind] or "Skip"
+        local r = { x = 0, y = h - 250 * s, w = (34 + 9.5 * #label) * s, h = 46 * s }
+        r.x = w - 36 * s - r.w
+        st.skip_rect = r
+        local saved = L
+        L = {}
+        skip_ov.res_x, skip_ov.res_y = w, h
+        -- a solid dark pill: it sits over the bare picture when the controls are hidden, so the glass pill would not read
+        shape(rrect(r.x, r.y, r.w, r.h, r.h / 2), "1C1A18", st.hover == "skip" and 0x08 or 0x28)
+        text(r.x + r.w / 2, r.y + r.h / 2, label, 17 * s, C.text, 0, 5, true)
+        data = table.concat(L, "\n")
+        L = saved
+    end
+    if data ~= skip_ov.data then skip_ov.data = data; skip_ov:update() end
+end
+
+mp.register_script_message("lumina-segments", function(json)
+    local t = require("mp.utils").parse_json(json)
+    st.segments, st.skip_done, st.has_marks = {}, {}, false
+    if type(t) == "table" then
+        st.skip_auto = t.auto == true
+        st.has_marks = t.marks == true
+        for _, g in ipairs(t.segments or {}) do
+            if type(g) == "table" and tonumber(g.s) and tonumber(g.e) and tonumber(g.e) > tonumber(g.s) then
+                st.segments[#st.segments + 1] = { kind = tostring(g.kind or ""), s = tonumber(g.s), e = tonumber(g.e) }
+            end
+        end
+    end
+    skip_update()
+end)
+mp.register_script_message("lumina-skip-segment", function() st.skip_now() end)
+mp.observe_property("time-pos", "number", function() skip_update() end)
+mp.observe_property("osd-dimensions", "native", function() skip_update() end)
 
 mp.register_script_message("lumina-mini-state", function(v)
     st.mini = (v == "yes")

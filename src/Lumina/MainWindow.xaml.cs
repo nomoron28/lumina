@@ -1548,6 +1548,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                         case "lumina-sleep": SleepCommand(m, a.Length > 1 ? a[1] : "cycle"); break;
                         case "lumina-bookmark": ToggleBookmark(m, path); break;
                         case "lumina-bookmark-clear": Db.ClearBookmarks(path); PushBookmarks(m, path); m.ShowText("Bookmarks removed", 1800); break;
+                        case "lumina-mark": if (a.Length > 3) MarkSkip(m, path, item, a[1], a[2], a[3]); break;
+                        case "lumina-mark-clear": Db.ClearMarks(MarkScopes(path, item)); PushSegments(m, path, item); m.ShowText("Skip marks removed", 1800); break;
                         case "lumina-thumb": if (a.Length > 3) ShowSeekPreview(a[1], a[2], a[3]); break;
                         case "lumina-thumb-hide": _seekPreview?.HidePreview(); break;
                         case "lumina-thumbs-toggle":
@@ -1578,7 +1580,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                         case "lumina-exit-fullscreen": if (_fs.On) { _fs.Exit(); SendFullscreenState(); } else Stop(); break;   // Esc: leave fullscreen first, then go back to the page
                     }
                 });
-                m.FileLoaded += () => Dispatcher.BeginInvoke(() => { SendTitle(m, path, item); _ = OnFileLoaded(m, path); if (_mpv == m) { StartThumbnails(m, path); PushBookmarks(m, path); PushSleepState(m); StartMirror(); _recordingPath = null; PushMiniState(m); ApplySubStyle(m, path); } });
+                m.FileLoaded += () => Dispatcher.BeginInvoke(() => { SendTitle(m, path, item); _ = OnFileLoaded(m, path); if (_mpv == m) { StartThumbnails(m, path); PushBookmarks(m, path); PushSegments(m, path, item); PushSleepState(m); StartMirror(); _recordingPath = null; PushMiniState(m); ApplySubStyle(m, path); } });
                 m.EndFile += (reason, error) => { if (reason == 4) Dispatcher.BeginInvoke(() => PlaybackFailed(m, path, error)); };
                 // Resume unless it was watched through or barely started.
                 var start = opts?.StartSeconds ?? (item is { Watched: false, Position: > 5 } && AppSettings.Get("playback.resume") == "always" ? item.Position : 0);
@@ -2002,6 +2004,47 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     }
 
     // ---- bookmarks ----
+
+    static IEnumerable<string> MarkScopes(string path, MediaItem? item) =>
+        new[] { SkipMarks.FileScope(path), item != null ? SkipMarks.SeasonScope(item) : null }.OfType<string>();
+
+    /// <summary>Tells the controller where the intro, recap and credits are in the playing file, so it can offer Skip.</summary>
+    void PushSegments(Mpv m, string path, MediaItem? item)
+    {
+        try
+        {
+            static double Num(string? s) => double.TryParse(s, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 0;
+            var duration = Num(m.Get("duration"));
+            var chapters = new List<(string, double)>();
+            for (int i = 0, n = (int)Num(m.Get("chapter-list/count")); i < n; i++)
+                chapters.Add((m.Get($"chapter-list/{i}/title") ?? "", Num(m.Get($"chapter-list/{i}/time"))));
+            var own = Db.Marks(SkipMarks.FileScope(path));
+            var season = item != null && SkipMarks.SeasonScope(item) is { } sc ? Db.Marks(sc) : new List<SkipMark>();
+            var segments = SkipMarks.Combine(own, season, SkipMarks.FromChapters(chapters, duration), duration);
+            var json = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                auto = AppSettings.Bool("playback.autoSkip"),
+                marks = own.Count + season.Count > 0,
+                segments = segments.Select(g => new { kind = g.Kind, s = g.Start, e = g.End }),
+            });
+            m.Command("script-message", "lumina-segments", json);
+        }
+        catch (Exception e) when (e is ObjectDisposedException or InvalidOperationException or Microsoft.Data.Sqlite.SqliteException) { }
+    }
+
+    /// <summary>"Intro starts here" and the like, from the player's Bookmarks menu: kept for this file and for its season.</summary>
+    void MarkSkip(Mpv m, string path, MediaItem? item, string kind, string edge, string at)
+    {
+        if (!double.TryParse(at, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t)) return;
+        try
+        {
+            foreach (var scope in MarkScopes(path, item)) Db.SetMark(scope, kind, edge, t);
+            PushSegments(m, path, item);
+            var what = char.ToUpperInvariant(kind[0]) + kind[1..];
+            m.ShowText(edge == "start" ? $"{what} starts at {MediaItem.Clock(t)}" : $"{what} ends at {MediaItem.Clock(t)}", 1800);
+        }
+        catch (Exception e) when (e is ArgumentException or Microsoft.Data.Sqlite.SqliteException) { Lumina.Diagnostics.Log.Error("Skip mark failed", e); }
+    }
 
     void PushBookmarks(Mpv m, string path)
     {
