@@ -192,7 +192,37 @@ public static class Db
           collection_id INTEGER NOT NULL REFERENCES collections(id) ON DELETE CASCADE, ref TEXT NOT NULL COLLATE NOCASE, added_at INTEGER NOT NULL,
           PRIMARY KEY(collection_id, ref));
         """,
+        // v9: where the intro, recap and credits are, marked by the user for a file and for its season (see SkipMarks)
+        """
+        CREATE TABLE skip_marks(scope TEXT NOT NULL COLLATE NOCASE, kind TEXT NOT NULL, start REAL, end_at REAL, PRIMARY KEY(scope, kind));
+        """,
     };
+
+    public static List<SkipMark> Marks(string scope)
+    {
+        var list = new List<SkipMark>();
+        using var c = Open();
+        using var r = Cmd(c, "SELECT kind, start, end_at FROM skip_marks WHERE scope=@s", ("@s", scope)).ExecuteReader();
+        while (r.Read()) list.Add(new SkipMark(r.GetString(0), r.IsDBNull(1) ? null : r.GetDouble(1), r.IsDBNull(2) ? null : r.GetDouble(2)));
+        return list;
+    }
+
+    /// <summary>Sets one edge ("start" or "end") of a kind's mark. A start after the saved end (or an end before the start) clears the other edge.</summary>
+    public static void SetMark(string scope, string kind, string edge, double t)
+    {
+        if (!SkipMarks.Kinds.Contains(kind) || edge is not ("start" or "end")) throw new ArgumentException("unknown mark " + kind + " " + edge);
+        using var c = Open();
+        Cmd(c, edge == "start"
+            ? "INSERT INTO skip_marks(scope,kind,start) VALUES(@s,@k,@t) ON CONFLICT(scope,kind) DO UPDATE SET start=@t, end_at=CASE WHEN end_at>@t THEN end_at END"
+            : "INSERT INTO skip_marks(scope,kind,end_at) VALUES(@s,@k,@t) ON CONFLICT(scope,kind) DO UPDATE SET end_at=@t, start=CASE WHEN start<@t THEN start END",
+            ("@s", scope), ("@k", kind), ("@t", t)).ExecuteNonQuery();
+    }
+
+    public static void ClearMarks(IEnumerable<string> scopes)
+    {
+        using var c = Open();
+        foreach (var s in scopes) Cmd(c, "DELETE FROM skip_marks WHERE scope=@s", ("@s", s)).ExecuteNonQuery();
+    }
 
     public static List<Collection> Collections()
     {

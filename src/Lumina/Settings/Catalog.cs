@@ -164,6 +164,8 @@ public static class Catalog
         Choice("playback.queueRepeat", "playback", "Queue", "Repeat the queue", "off", Ch("off|Off", "all|All", "one|One item"),
             "Applies when you play several files or a playlist.", segmented: true),
         Toggle("playback.shuffle", "playback", "Queue", "Shuffle the queue", false),
+        Toggle("playback.autoSkip", "playback", "Skipping", "Skip intros and recaps on their own", false,
+            "Off: a Skip button shows while one plays. Lumina finds them from chapter names and from marks you set in the player (Bookmarks, Intro starts here); a mark set on one episode counts for its whole season. Credits are never skipped on their own."),
         Choice("playback.afterSleep", "playback", "Sleep timer", "When the sleep timer ends", "pause",
             Ch("pause|Pause the video", "stop|Stop and go back to the library", "sleep|Put the PC to sleep", "shutdown|Shut the PC down"),
             "Set the timer from the player panel. Shut down gives you a minute of Windows' own warning, and shutdown /a cancels it."),

@@ -116,7 +116,7 @@ public class BookmarkControllerTests
         Assert.Equal("2", Wait(m, "bookmark_count", "2"));
         m.Command("script-message", "lumina-do", "bookmarks");
         Assert.Equal("bookmarks", Wait(m, "menu", "bookmarks"));
-        Assert.Equal("Early|Late|Add a bookmark here|Remove all bookmarks", Wait(m, "menu_items", "Early|Late|Add a bookmark here|Remove all bookmarks"));
+        Assert.Equal("Early|Late|Add a bookmark here|Remove all bookmarks|Skip marks...", Wait(m, "menu_items", "Early|Late|Add a bookmark here|Remove all bookmarks|Skip marks..."));
     }
 
     [Fact]
@@ -125,7 +125,22 @@ public class BookmarkControllerTests
         if (!Fixtures.HasMpv) return;
         using var m = Fixtures.Open("multi.mkv");
         m.Command("script-message", "lumina-do", "bookmarks");
-        Assert.Equal("Add a bookmark here", Wait(m, "menu_items", "Add a bookmark here"));
+        Assert.Equal("Add a bookmark here|Skip marks...", Wait(m, "menu_items", "Add a bookmark here|Skip marks..."));
+    }
+
+    [Fact]
+    public void SkipMarksHaveTheirOwnMenuAndClearOnlyShowsWhenThereAreSome()
+    {
+        if (!Fixtures.HasMpv) return;
+        using var m = Fixtures.Open("multi.mkv");
+        const string marks = "Intro starts here|Intro ends here|Recap starts here|Recap ends here|Credits start here";
+        m.Command("script-message", "lumina-do", "marks");
+        Assert.Equal(marks, Wait(m, "menu_items", marks));
+        m.Command("script-message", "lumina-do", "marks");                   // the same name again closes it
+        Assert.Equal("", Wait(m, "menu", ""));
+        m.Command("script-message", "lumina-segments", "{\"marks\":true,\"segments\":[]}");
+        m.Command("script-message", "lumina-do", "marks");
+        Assert.Equal(marks + "|Clear skip marks", Wait(m, "menu_items", marks + "|Clear skip marks"));
     }
 
     [Fact]

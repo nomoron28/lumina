@@ -45,6 +45,8 @@ The **settings panel** (gear) has four tabs:
 - *Audio*: tracks, output device, delay, equaliser, compressor, spatial sound, loudness.
 - *Subtitles*: tracks, online search, size, position, delay.
 
+**Skip intro, recap and credits.** A **Skip intro** (or recap, or credits) button shows at the bottom right while one plays. Lumina finds them from chapter names such as *Opening*, *Previously on* and *Ending*. For files without such chapters, open *Bookmarks*, **Skip marks**, and press **Intro starts here** and **Intro ends here** at the right moments (and the same for the recap and the credits); the marks count for every episode of that season. **Settings, Playback, Skipping** can skip intros and recaps without asking; credits are always left to you.
+
 Controller styles (**Settings, Interface**): **Modern** (default), VLC (a flat bar under the picture), Classic, and a Floating pill. The set of buttons can be customised.
 
 ### Subtitles
