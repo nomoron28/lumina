@@ -47,6 +47,8 @@ The **settings panel** (gear) has four tabs:
 
 **Skip intro, recap and credits.** A **Skip intro** (or recap, or credits) button shows at the bottom right while one plays. Lumina finds them from chapter names such as *Opening*, *Previously on* and *Ending*. For files without such chapters, open *Bookmarks*, **Skip marks**, and press **Intro starts here** and **Intro ends here** at the right moments (and the same for the recap and the credits); the marks count for every episode of that season. **Settings, Playback, Skipping** can skip intros and recaps without asking; credits are always left to you.
 
+**Up Next.** Where an episode's credits start (or 30 seconds before the end), a card shows the next episode and counts down 10 seconds of playback; pausing holds it. **Play now** skips the wait and **Cancel** stays on this episode. Set **Settings, Playback, After an episode** to *Stop and stay* to turn it off.
+
 Controller styles (**Settings, Interface**): **Modern** (default), VLC (a flat bar under the picture), Classic, and a Floating pill. The set of buttons can be customised.
 
 ### Subtitles

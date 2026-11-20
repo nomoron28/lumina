@@ -53,6 +53,15 @@ public class SkipMarkTests
     }
 
     [Fact]
+    public void UpNextComesAtTheCreditsOrHalfAMinuteBeforeTheEnd()
+    {
+        Assert.Equal(1300, SkipMarks.UpNextAt(new[] { new Segment("intro", 0, 90), new Segment("credits", 1300, 1420) }, 1420));
+        Assert.Equal(1390, SkipMarks.UpNextAt(new[] { new Segment("intro", 0, 90) }, 1420));
+        Assert.Equal(1390, SkipMarks.UpNextAt(new[] { new Segment("credits", 200, 260) }, 1420));   // credits in the first half: not this file's
+        Assert.Null(SkipMarks.UpNextAt(Array.Empty<Segment>(), 90));                                 // a short clip gets no card
+    }
+
+    [Fact]
     public void SeasonScopePrefersTheTmdbId()
     {
         var ep = new MediaItem { Kind = "show", Season = 2, TmdbId = 1396, FileTitle = "Breaking Bad" };
@@ -127,6 +136,24 @@ public class SkipControllerTests
         m.Command("script-message", "lumina-skip-segment");
         Assert.Equal("", Wait(m, "skip", ""));
         Assert.True(double.Parse(m.Get("time-pos")!, System.Globalization.CultureInfo.InvariantCulture) >= 3.9);
+    }
+
+    [Fact]
+    public void UpNextCountsDownTakesOverFromSkipCreditsAndCanBeCancelled()
+    {
+        if (!Fixtures.HasMpv) return;
+        using var m = Fixtures.Open("multi.mkv");
+        m.Set("pause", "yes");
+        m.Command("seek", "1", "absolute+exact");
+        m.Command("script-message", "lumina-segments", "{\"segments\":[{\"kind\":\"credits\",\"s\":0.5,\"e\":12}],\"upnext\":{\"title\":\"S01E02 · Next\",\"at\":0.5}}");
+        Assert.Equal("10", Wait(m, "upnext", "10"));            // half a second in: 10 seconds to go, rounded up
+        Assert.Equal("", Wait(m, "skip", ""));                  // the card replaces Skip credits
+        m.Command("seek", "4", "absolute+exact");
+        Assert.Equal("7", Wait(m, "upnext", "7"));              // it counts playback time, so a pause holds it
+
+        m.Command("script-message", "lumina-upnext", "cancel");
+        Assert.Equal("", Wait(m, "upnext", ""));
+        Assert.Equal("credits", Wait(m, "skip", "credits"));    // Skip credits is back for whoever still wants it
     }
 
     [Fact]

@@ -68,6 +68,17 @@ public static partial class SkipMarks
         return result.OrderBy(x => x.Start).ToList();
     }
 
+    /// <summary>
+    /// When the Up Next card appears: where the credits start, or 30 seconds before the end. Nothing for a clip shorter than
+    /// two minutes, or credits that start in the first half (a mark meant for a longer episode).
+    /// </summary>
+    public static double? UpNextAt(IEnumerable<Segment> segments, double duration)
+    {
+        if (duration < 120) return null;
+        var credits = segments.Where(s => s.Kind == "credits" && s.Start >= duration / 2).Select(s => (double?)s.Start).Min();
+        return credits ?? duration - 30;
+    }
+
     public static string FileScope(string path) => "file:" + path;
 
     /// <summary>The season a mark is shared with: the show by its TMDB id when matched, otherwise by name.</summary>

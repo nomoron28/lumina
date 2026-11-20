@@ -1513,6 +1513,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         var player = with ?? (Stage.Visibility == Visibility.Visible ? "lumina" : AppSettings.Get("player.external"));
         if (player != "lumina" && _streamAuth == null && _streamLoadUrl == null && File.Exists(path)) { PlayExternal(player, path, item); return; }
         if (!keepQueue) _queue.Clear();
+        _upNextCancelled = null;
         _playingPath = path;
         _playingItem = item;
         RememberRecent(path);
@@ -1549,6 +1550,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                         case "lumina-bookmark": ToggleBookmark(m, path); break;
                         case "lumina-bookmark-clear": Db.ClearBookmarks(path); PushBookmarks(m, path); m.ShowText("Bookmarks removed", 1800); break;
                         case "lumina-mark": if (a.Length > 3) MarkSkip(m, path, item, a[1], a[2], a[3]); break;
+                        case "lumina-upnext-cancel": _upNextCancelled = path; break;
                         case "lumina-mark-clear": Db.ClearMarks(MarkScopes(path, item)); PushSegments(m, path, item); m.ShowText("Skip marks removed", 1800); break;
                         case "lumina-thumb": if (a.Length > 3) ShowSeekPreview(a[1], a[2], a[3]); break;
                         case "lumina-thumb-hide": _seekPreview?.HidePreview(); break;
@@ -2021,11 +2023,15 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             var own = Db.Marks(SkipMarks.FileScope(path));
             var season = item != null && SkipMarks.SeasonScope(item) is { } sc ? Db.Marks(sc) : new List<SkipMark>();
             var segments = SkipMarks.Combine(own, season, SkipMarks.FromChapters(chapters, duration), duration);
+            // Up Next: an episode with a next one, nothing queued, and "After an episode: play the next one"
+            var next = item != null && _queue.Count == 0 && AppSettings.Get("playback.afterEpisode") == "next" ? MediaItem.NextEpisode(Db.List(), item) : null;
+            var at = next != null ? SkipMarks.UpNextAt(segments, duration) : null;
             var json = System.Text.Json.JsonSerializer.Serialize(new
             {
                 auto = AppSettings.Bool("playback.autoSkip"),
                 marks = own.Count + season.Count > 0,
                 segments = segments.Select(g => new { kind = g.Kind, s = g.Start, e = g.End }),
+                upnext = at is double a ? new { title = next!.Sub, at = a } : null,
             });
             m.Command("script-message", "lumina-segments", json);
         }
@@ -2293,10 +2299,14 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         if ((dir > 0 ? MediaItem.NextEpisode(all, item) : MediaItem.PreviousEpisode(all, item)) is { } ep) Play(ep.Path, ep);
     }
 
+    /// <summary>The file whose Up Next card the user cancelled: it stays on its last frame instead of going on.</summary>
+    string? _upNextCancelled;
+
     /// <summary>What happens when a video plays to its last frame.</summary>
     void AfterEnd(MediaItem? item)
     {
         if (_sleep.StopsAtEnd) { FireSleep(); return; }      // "stop when this ends" wins over the queue and the next episode
+        if (item != null && _upNextCancelled == item.Path) return;
         if (_queue.Count > 0)
         {
             if (_queue.Advance() is { } q) PlayQueueItem(q);
