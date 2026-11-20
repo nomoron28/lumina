@@ -4,6 +4,8 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-20
+
 ### Added
 - Install with Scoop: `scoop bucket add lumina https://github.com/nomoron28/lumina`, then `scoop install lumina/lumina`. Manifests for winget and Chocolatey are ready for submission.
 - **Play with another player**: choose VLC, MPC-HC, MPC-BE, PotPlayer, mpv, mpv.net or any other program in Settings, Playback, Player, or right-click a title and pick **Play with** for one time. The player starts where you left off with your subtitle. VLC and mpv report where you stopped; with the others Lumina asks whether you finished.
@@ -51,5 +53,6 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 - Per-user installer and portable zip; file associations, jump list, taskbar progress, media keys, tray, start with Windows, single instance, an auto-hide taskbar that can be revealed in fullscreen.
 - Update check against a release feed (off by default), verified with a checksum.
 
+[0.2.0]: https://github.com/nomoron28/lumina/releases/tag/v0.2.0
 [0.1.1]: https://github.com/nomoron28/lumina/releases/tag/v0.1.1
 [0.1.0]: https://github.com/nomoron28/lumina/releases/tag/v0.1.0
