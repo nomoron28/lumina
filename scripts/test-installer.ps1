@@ -73,7 +73,8 @@ try {
         $app = Start-Lumina "" @{} "settings" -RegBranch $regBranch -CredPrefix $credPrefix   # the installer it starts inherits the private registry branch
         try {
             # UI Automation presses the buttons (no real mouse or keyboard), so this runs while someone is at the PC
-            Invoke-Element $app "Advanced"
+            # the search box, not the Advanced tab: UIA Select() checks a radio button without raising the Click that opens the section
+            (Find-Element $app "Search settings" 8000).GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue("Check for updates now")
             Invoke-Element $app "Check for updates now"
             CheckTrue "the old version offers the new one" (Find-Element $app "Lumina $ver2 is available" 8000 -Text)
             Invoke-Element $app "Download and install"
