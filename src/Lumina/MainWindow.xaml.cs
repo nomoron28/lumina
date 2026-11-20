@@ -747,6 +747,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
         DCast.ItemsSource = detail?.Cast.Select(c => new CastCard(c.Person, c.Role, c.Photo is { } cp && File.Exists(Db.ArtPath(cp)) ? LoadImage(Db.ArtPath(cp)) : null)).ToList();
         DCastBlock.Visibility = detail is { Cast.Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
+        if (!sameTitle) _ = FillExtras(en);
 
         DShowBlock.Visibility = en.IsShow ? Visibility.Visible : Visibility.Collapsed;
         DEpisodeTitle.Visibility = en.IsShow ? Visibility.Visible : Visibility.Collapsed;
@@ -848,6 +849,25 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         b.SetResourceReference(Border.BorderBrushProperty, "Lumina.Brush.TextMuted");
         System.Windows.Automation.AutomationProperties.SetName(b, "Rated " + text);
         return b;
+    }
+
+    /// <summary>Trailers and bonus videos found beside the title's files, read in the background (the folder may be on a NAS).</summary>
+    async Task FillExtras(LibraryEntry en)
+    {
+        DExtras.Children.Clear();
+        DExtrasBlock.Visibility = Visibility.Collapsed;
+        var files = en.Items.Select(i => i.Path).ToList();
+        var extras = await Task.Run(() => Extras.For(files, Db.Roots()));
+        if (_entry != en || extras.Count == 0) return;
+        foreach (var x in extras)
+        {
+            var label = x.Name == x.Kind ? x.Kind : $"{x.Kind}  ·  {x.Name}";
+            var b = new Button { Content = label, Style = (Style)FindResource("Lumina.Btn.Secondary"), Margin = new Thickness(0, 0, 10, 10), ToolTip = Path.GetFileName(x.Path) };
+            System.Windows.Automation.AutomationProperties.SetName(b, "Play " + label);
+            b.Click += (_, _) => Play(x.Path, null);
+            DExtras.Children.Add(b);
+        }
+        DExtrasBlock.Visibility = Visibility.Visible;
     }
 
     CancellationTokenSource? _probeCts;

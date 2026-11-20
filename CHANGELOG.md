@@ -4,6 +4,12 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- **Extras** on a title's page: trailers and bonus videos named the way Plex and Jellyfin name them (`Inception-trailer.mkv`, `trailer.mkv` in the film's folder, or files in `Extras`, `Trailers`, `Featurettes`, `Behind The Scenes`, `Deleted Scenes` and similar folders). Press one to play it.
+
+### Fixed
+- Trailers, featurettes and release samples no longer appear in the library as films of their own. They leave on the next scan.
+
 ## [0.2.0] - 2026-11-20
 
 ### Added
