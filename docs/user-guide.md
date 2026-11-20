@@ -2,7 +2,7 @@
 
 ## The library
 
-**Home** shows what to watch next: *Continue watching*, favourites, *Recently added*, film and TV genres, unwatched and top rated. Each row has a **See all** link.
+**Home** shows what to watch next: *Continue watching*, favourites, *Recently added*, film and TV genres, unwatched and top rated. Each row has a **See all** link. **Customise Home**, at the bottom of Home or in Settings, Interface, hides rows and changes their order.
 
 **Movies** and **TV shows** list your titles as posters. A small dot in the corner means you have not started it yet. Use the filter chips (All, Unwatched, In progress), the sort menu, and the grid or list and S, M, L size buttons.
 

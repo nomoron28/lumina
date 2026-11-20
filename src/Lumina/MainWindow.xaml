@@ -299,6 +299,7 @@
                         <app:Shelf x:Name="ShelfTopRated" Title="Top rated films" />
                         <app:Shelf x:Name="ShelfMovies" Title="Movies" />
                         <app:Shelf x:Name="ShelfShows" Title="TV shows" />
+                        <Button Content="Customise Home" Style="{StaticResource Lumina.Btn.Link}" HorizontalAlignment="Left" Margin="0,4,0,24" Click="OnCustomiseHome" AutomationProperties.Name="Customise Home" />
                     </StackPanel>
 
                     <!-- Empty library: a clear next step instead of a blank page -->

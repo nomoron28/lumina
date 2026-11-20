@@ -658,6 +658,22 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         var big = _entries.Count > 8;
         ShelfMovies.SetItems(big ? movies.Take(20) : Array.Empty<LibraryEntry>());
         ShelfShows.SetItems(big ? shows.Take(20) : Array.Empty<LibraryEntry>());
+        ArrangeHome();
+    }
+
+    /// <summary>Puts Home's rows in the order the user chose and leaves out the hidden ones (Customise Home, issue #15).</summary>
+    void ArrangeHome()
+    {
+        var shelves = new Dictionary<string, FrameworkElement>
+        {
+            ["continue"] = ShelfContinue, ["favourites"] = ShelfFavourites, ["recent"] = ShelfRecent, ["filmgenres"] = ShelfFilmGenres,
+            ["showgenres"] = ShelfShowGenres, ["unwatched"] = ShelfUnwatched, ["toprated"] = ShelfTopRated, ["movies"] = ShelfMovies, ["shows"] = ShelfShows,
+        };
+        var (order, hidden) = HomeLayout.Parse(AppSettings.Get("interface.homeRows"));
+        foreach (var s in shelves.Values) HomeRows.Children.Remove(s);
+        var at = 0;
+        foreach (var id in order)
+            if (!hidden.Contains(id)) HomeRows.Children.Insert(at++, shelves[id]);
     }
 
     static string Count(int n, string noun) => $"{n} {noun}{(n == 1 ? "" : "s")}";
@@ -1195,6 +1211,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             case "interface.keepOnTop": Topmost = AppSettings.Bool(key); break;
             case "interface.translucency": Lumina.Themes.ThemeManager.Apply(); ApplyTranslucency(); break;
             case "interface.controls": PushControls(); break;
+            case "interface.homeRows": ArrangeHome(); break;
             case "general.tray": if (!AppSettings.Bool(key)) RemoveTray(); break;
             case "general.startWithWindows":
                 try { StartWithWindows.Set(AppSettings.Bool(key)); }
@@ -1257,6 +1274,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 LockNow(); _settings?.Say("Locked.");
                 break;
             case "edit-controller": EditController(); break;
+            case "edit-home": EditHome(); break;
             case "unhide":
             {
                 var n = Db.HiddenCount();
@@ -2428,44 +2446,75 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     void EditController()
     {
+        EditLayout("Customise the controller", ControllerLayout.Known, ("Left", "left", "Right", "right"), fixedId: "gear",
+            load: () =>
+            {
+                var stored = ControllerLayout.Parse(Config.Raw("interface.controls"));
+                return (stored.Concat(ControllerLayout.Default.Where(d => !stored.Contains(d))).ToList(), stored.ToHashSet());   // hidden ones stay listed, after the shown
+            },
+            save: (order, on) =>
+            {
+                var text = order == null ? "" : ControllerLayout.Format(order.Where(on!.Contains));
+                AppSettings.Set("interface.controls", ControllerLayout.IsDefault(text) ? "" : text);
+                _settings?.Refresh("interface.controls");
+                PushControls();
+            },
+            note: "Order is left to right on the controller. The gear always stays so Settings is one click away. Press H while playing to hide all controls.");
+    }
+
+    void OnCustomiseHome(object sender, RoutedEventArgs e) => EditHome();
+
+    /// <summary>Customise Home (issue #15): which rows it shows, top to bottom.</summary>
+    void EditHome()
+    {
+        EditLayout("Customise Home", HomeLayout.Known, ("Up", "up", "Down", "down"), fixedId: null,
+            load: () => { var (order, hidden) = HomeLayout.Parse(Config.Raw("interface.homeRows")); return (order, order.Where(id => !hidden.Contains(id)).ToHashSet()); },
+            save: (order, on) =>
+            {
+                var text = order == null ? "" : HomeLayout.Format(order, order.Where(id => !on!.Contains(id)).ToHashSet());
+                AppSettings.Set("interface.homeRows", HomeLayout.IsDefault(text) ? "" : text);
+                _settings?.Refresh("interface.homeRows");
+                RefreshHome();
+            },
+            note: "Rows with nothing in them stay out of the way on their own, for example Favourites before you star a title.");
+    }
+
+    /// <summary>
+    /// A list of named parts, each with a Show box and two move buttons, saved on every change. Used for the controller's
+    /// buttons and for Home's rows. save(null, null) resets to the standard layout.
+    /// </summary>
+    void EditLayout(string title, IReadOnlyList<(string Id, string Label)> known, (string Back, string back, string Forward, string forward) words, string? fixedId,
+        Func<(List<string> Order, HashSet<string> On)> load, Action<List<string>?, HashSet<string>?> save, string note)
+    {
         var panel = new StackPanel();
-        void Save(List<string> order, HashSet<string> on)
-        {
-            var text = ControllerLayout.Format(order.Where(on.Contains));
-            AppSettings.Set("interface.controls", ControllerLayout.IsDefault(text) ? "" : text);
-            _settings?.Refresh("interface.controls");
-            PushControls();
-        }
         void Build()
         {
             panel.Children.Clear();
-            var stored = ControllerLayout.Parse(Config.Raw("interface.controls"));
-            var order = stored.Concat(ControllerLayout.Default.Where(d => !stored.Contains(d))).ToList();   // hidden ones stay listed, after the shown
-            var on = stored.ToHashSet();
+            var (order, on) = load();
             var reset = new Button { Content = "Reset to standard", Style = (Style)FindResource("Lumina.Btn.Secondary"), Margin = new Thickness(0, 0, 0, 10), HorizontalAlignment = HorizontalAlignment.Left };
-            reset.Click += (_, _) => { AppSettings.Set("interface.controls", ""); _settings?.Refresh("interface.controls"); PushControls(); Build(); };
+            reset.Click += (_, _) => { save(null, null); Build(); };
             panel.Children.Add(reset);
             for (int i = 0; i < order.Count; i++)
             {
-                var id = order[i]; var label = ControllerLayout.Known.First(k => k.Id == id).Label; var at = i;
+                var id = order[i]; var label = known.First(k => k.Id == id).Label; var at = i;
                 var row = new DockPanel { Margin = new Thickness(0, 3, 0, 3) };
-                var show = new CheckBox { Content = label, IsChecked = on.Contains(id), IsEnabled = id != "gear", HorizontalAlignment = HorizontalAlignment.Left };
+                var show = new CheckBox { Content = label, IsChecked = on.Contains(id), IsEnabled = id != fixedId, HorizontalAlignment = HorizontalAlignment.Left };
                 System.Windows.Automation.AutomationProperties.SetName(show, "Show " + label);
-                var up = new Button { Content = "Left", Style = (Style)FindResource("Lumina.Btn.Secondary"), MinHeight = 30, Margin = new Thickness(6, 0, 0, 0), IsEnabled = i > 0 };
-                var down = new Button { Content = "Right", Style = (Style)FindResource("Lumina.Btn.Secondary"), MinHeight = 30, Margin = new Thickness(6, 0, 0, 0), IsEnabled = i < order.Count - 1 };
-                System.Windows.Automation.AutomationProperties.SetName(up, "Move " + label + " left");
-                System.Windows.Automation.AutomationProperties.SetName(down, "Move " + label + " right");
+                var up = new Button { Content = words.Back, Style = (Style)FindResource("Lumina.Btn.Secondary"), MinHeight = 30, Margin = new Thickness(6, 0, 0, 0), IsEnabled = i > 0 };
+                var down = new Button { Content = words.Forward, Style = (Style)FindResource("Lumina.Btn.Secondary"), MinHeight = 30, Margin = new Thickness(6, 0, 0, 0), IsEnabled = i < order.Count - 1 };
+                System.Windows.Automation.AutomationProperties.SetName(up, $"Move {label} {words.back}");
+                System.Windows.Automation.AutomationProperties.SetName(down, $"Move {label} {words.forward}");
                 DockPanel.SetDock(down, Dock.Right); DockPanel.SetDock(up, Dock.Right);
                 row.Children.Add(down); row.Children.Add(up); row.Children.Add(show);
-                show.Click += (_, _) => { if (show.IsChecked == true) on.Add(id); else on.Remove(id); Save(order, on); Build(); };
-                up.Click += (_, _) => { (order[at - 1], order[at]) = (order[at], order[at - 1]); Save(order, on); Build(); };
-                down.Click += (_, _) => { (order[at + 1], order[at]) = (order[at], order[at + 1]); Save(order, on); Build(); };
+                show.Click += (_, _) => { if (show.IsChecked == true) on.Add(id); else on.Remove(id); save(order, on); Build(); };
+                up.Click += (_, _) => { (order[at - 1], order[at]) = (order[at], order[at - 1]); save(order, on); Build(); };
+                down.Click += (_, _) => { (order[at + 1], order[at]) = (order[at], order[at + 1]); save(order, on); Build(); };
                 panel.Children.Add(row);
             }
-            panel.Children.Add(new TextBlock { Text = "Order is left to right on the controller. The gear always stays so Settings is one click away. Press H while playing to hide all controls.", Style = (Style)FindResource("Lumina.Text.Muted"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) });
+            panel.Children.Add(new TextBlock { Text = note, Style = (Style)FindResource("Lumina.Text.Muted"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) });
         }
         Build();
-        ConfirmDialog.ShowContent(this, "Customise the controller", panel, 560);
+        ConfirmDialog.ShowContent(this, title, panel, 560);
     }
 
     void ShowProfiles()
