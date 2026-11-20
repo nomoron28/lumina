@@ -181,7 +181,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     static object? ItemAt(DependencyObject? d)
     {
         for (; d != null; d = d is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
-            if (d is FrameworkElement { DataContext: LibraryEntry or MediaItem } fe && fe is ListBoxItem or ContentPresenter or Border)
+            if (d is FrameworkElement { DataContext: LibraryEntry or MediaItem or GenreTile { Kind: "collection" } } fe && fe is ListBoxItem or ContentPresenter or Border)
                 return fe.DataContext;
         return null;
     }
@@ -228,6 +228,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                     en.IsShow ? en.Items.Select(i => i.Path) : en.Items.Select(i => Path.GetDirectoryName(i.Path) ?? i.Path).Distinct(StringComparer.OrdinalIgnoreCase),
                     en.IsShow ? "movie" : "show"));
                 AddMoveItems(menu, en.Items, en);
+                AddCollectionItems(menu, en);
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(en.Next.Path), Explorer.CanReveal(en.Next.Path));
                 Add("Hide from library...", () => HideItems(en.Items, en.Title));
@@ -248,8 +249,64 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 Add("Show in Explorer", () => Reveal(ep.Path), Explorer.CanReveal(ep.Path));
                 Add("Hide from library...", () => HideItems(new[] { ep }, ep.EpisodeTitle));
                 break;
+            case GenreTile { Kind: "collection" } tile:
+                Add("Rename collection...", () => RenameCollection(tile));
+                Add("Delete collection...", () => DeleteCollection(tile));
+                break;
         }
         menu.IsOpen = true;
+    }
+
+    /// <summary>Right-click a title: put it in one of your collections, a new one, or (on a collection's page) take it out (issue #16).</summary>
+    void AddCollectionItems(ContextMenu menu, LibraryEntry en)
+    {
+        var all = Db.Collections();
+        var add = new MenuItem { Header = "Add to collection" };
+        System.Windows.Automation.AutomationProperties.SetName(add, "Add to collection");
+        foreach (var c in all.Where(c => !Collections.Contains(c, en)))
+        {
+            var mi = new MenuItem { Header = c.Name };
+            System.Windows.Automation.AutomationProperties.SetName(mi, c.Name);
+            mi.Click += (_, _) => { Db.AddToCollection(c.Id, Collections.Ref(en)); RefreshHome(); Status.Text = $"Added {en.Title} to {c.Name}."; };
+            add.Items.Add(mi);
+        }
+        if (add.Items.Count > 0) add.Items.Add(new Separator());
+        var fresh = new MenuItem { Header = "New collection..." };
+        System.Windows.Automation.AutomationProperties.SetName(fresh, "New collection");
+        fresh.Click += (_, _) =>
+        {
+            var name = ConfirmDialog.Prompt(this, "New collection", $"A name for the collection {en.Title} goes into, such as Terminator or Studio Ghibli.", "Create", "Collection name");
+            if (string.IsNullOrWhiteSpace(name)) return;
+            var id = Db.CreateCollection(name);
+            Db.AddToCollection(id, Collections.Ref(en));
+            RefreshHome();
+            Status.Text = $"Added {en.Title} to {name.Trim()}.";
+        };
+        add.Items.Add(fresh);
+        menu.Items.Add(add);
+
+        if (CurrentCollection is { } cur && Collections.Contains(cur, en))
+        {
+            var remove = new MenuItem { Header = $"Remove from {cur.Name}" };
+            System.Windows.Automation.AutomationProperties.SetName(remove, $"Remove from {cur.Name}");
+            remove.Click += (_, _) => { Db.RemoveFromCollection(cur.Id, Collections.Refs(en)); RefreshHome(); RenderLibrary(); };
+            menu.Items.Add(remove);
+        }
+    }
+
+    void RenameCollection(GenreTile tile)
+    {
+        var name = ConfirmDialog.Prompt(this, "Rename collection", "A new name for this collection.", "Rename", "Collection name", tile.Name);
+        if (string.IsNullOrWhiteSpace(name)) return;
+        try { Db.RenameCollection(tile.CollectionId, name); RefreshHome(); }
+        catch (ArgumentException e) { ConfirmDialog.Tell(this, "Rename collection", e.Message); }
+    }
+
+    void DeleteCollection(GenreTile tile)
+    {
+        if (!ConfirmDialog.Ask(this, $"Delete {tile.Name}?", "The collection goes; the films and shows in it stay in your library.", "Delete")) return;
+        Db.DeleteCollection(tile.CollectionId);
+        RefreshHome();
     }
 
     /// <summary>
@@ -472,6 +529,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ShelfTopRated.SeeAllClicked += () => Navigate("toprated");
         ShelfFilmGenres.ItemInvoked += t => { if (t is GenreTile g) OpenGenre(g); };
         ShelfShowGenres.ItemInvoked += t => { if (t is GenreTile g) OpenGenre(g); };
+        ShelfCollections.ItemInvoked += t => { if (t is GenreTile g) OpenCollection(g.CollectionId); };
         ShelfRecent.SeeAllClicked += () => Navigate("movies");
         ShelfUnwatched.SeeAllClicked += () => Navigate("unwatched");
         ShelfMovies.SeeAllClicked += () => Navigate("movies");
@@ -592,6 +650,22 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ShowPage(Page.Library);
     }
 
+    long _collectionId;
+
+    /// <summary>The Library page showing one of the user's collections, in release order (issue #16).</summary>
+    void OpenCollection(long id)
+    {
+        _detailsKey = null;
+        ClearSearchQuietly();
+        _collectionId = id;
+        _libMode = "collection";
+        ResetLibraryFilters();
+        RenderLibrary();
+        ShowPage(Page.Library);
+    }
+
+    Collection? CurrentCollection => _libMode == "collection" ? Db.Collections().FirstOrDefault(c => c.Id == _collectionId) : null;
+
     void OnTile(object sender, RoutedEventArgs e)
     {
         if (sender is Button { CommandParameter: string key }) Navigate(key);
@@ -648,6 +722,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         TileFoldersCount.Text = Count(Db.Roots().Count, "folder");
 
         ShelfFavourites.SetItems(HomeShelves.Favourites(_entries, Db.Favourites()).Take(20));
+        ShelfCollections.SetItems(Collections.Tiles(_entries, Db.Collections()));
         ShelfFilmGenres.SetItems(HomeShelves.Genres(_entries, "movie"));
         ShelfShowGenres.SetItems(HomeShelves.Genres(_entries, "show"));
         ShelfTopRated.SetItems(HomeShelves.TopRated(_entries, "movie"));
@@ -666,7 +741,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         var shelves = new Dictionary<string, FrameworkElement>
         {
-            ["continue"] = ShelfContinue, ["favourites"] = ShelfFavourites, ["recent"] = ShelfRecent, ["filmgenres"] = ShelfFilmGenres,
+            ["continue"] = ShelfContinue, ["favourites"] = ShelfFavourites, ["collections"] = ShelfCollections, ["recent"] = ShelfRecent, ["filmgenres"] = ShelfFilmGenres,
             ["showgenres"] = ShelfShowGenres, ["unwatched"] = ShelfUnwatched, ["toprated"] = ShelfTopRated, ["movies"] = ShelfMovies, ["shows"] = ShelfShows,
         };
         var (order, hidden) = HomeLayout.Parse(AppSettings.Get("interface.homeRows"));
@@ -749,6 +824,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             "favourites" => HomeShelves.Favourites(_entries, Db.Favourites()),
             "toprated" => HomeShelves.TopRated(_entries, "movie", int.MaxValue),
             "genre" when _genre != null => HomeShelves.InGenre(_entries, _genre.Kind, _genre.Name),
+            "collection" => CurrentCollection is { } col ? Collections.Members(_entries, col) : Array.Empty<LibraryEntry>(),
             "search" => _entries.Where(x => Matches(x, _query)),
             _ => _entries,
         };
@@ -764,6 +840,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             "movies" => "Movies", "shows" => "TV shows", "unwatched" => "Unwatched",
             "favourites" => "Favourites", "toprated" => "Top rated films",
             "genre" when _genre != null => _genre.Name,
+            "collection" => CurrentCollection?.Name ?? "Collection",
             _ => $"Results for “{_query}”",
         };
         LibCount.Text = Count(list.Count, "title");

@@ -185,7 +185,63 @@ public static class Db
         """
         CREATE TABLE show_override(path TEXT PRIMARY KEY COLLATE NOCASE, title TEXT NOT NULL, year INTEGER, season INTEGER NOT NULL);
         """,
+        // v8: the user's own collections of films and shows (issue #16); a title is held by Collections.Ref
+        """
+        CREATE TABLE collections(id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL COLLATE NOCASE, created_at INTEGER NOT NULL);
+        CREATE TABLE collection_items(
+          collection_id INTEGER NOT NULL REFERENCES collections(id) ON DELETE CASCADE, ref TEXT NOT NULL COLLATE NOCASE, added_at INTEGER NOT NULL,
+          PRIMARY KEY(collection_id, ref));
+        """,
     };
+
+    public static List<Collection> Collections()
+    {
+        var list = new List<Collection>();
+        using var c = Open();
+        using (var r = Cmd(c, "SELECT id, name FROM collections ORDER BY name COLLATE NOCASE").ExecuteReader())
+            while (r.Read()) list.Add(new Collection(r.GetInt64(0), r.GetString(1), new List<string>()));
+        using (var r = Cmd(c, "SELECT collection_id, ref FROM collection_items ORDER BY added_at").ExecuteReader())
+            while (r.Read()) list.FirstOrDefault(x => x.Id == r.GetInt64(0))?.Refs.Add(r.GetString(1));
+        return list;
+    }
+
+    /// <summary>A new collection, or the existing one of that name (names are unique, ignoring case).</summary>
+    public static long CreateCollection(string name)
+    {
+        name = name.Trim();
+        if (name.Length == 0) throw new ArgumentException("A collection needs a name.");
+        using var c = Open();
+        Cmd(c, "INSERT OR IGNORE INTO collections(name, created_at) VALUES(@n, @t)", ("@n", name), ("@t", DateTimeOffset.UtcNow.ToUnixTimeSeconds())).ExecuteNonQuery();
+        return (long)Cmd(c, "SELECT id FROM collections WHERE name=@n", ("@n", name)).ExecuteScalar()!;
+    }
+
+    public static void RenameCollection(long id, string name)
+    {
+        name = name.Trim();
+        if (name.Length == 0) throw new ArgumentException("A collection needs a name.");
+        using var c = Open();
+        try { Cmd(c, "UPDATE collections SET name=@n WHERE id=@i", ("@n", name), ("@i", id)).ExecuteNonQuery(); }
+        catch (Microsoft.Data.Sqlite.SqliteException e) when (e.SqliteErrorCode == 19) { throw new ArgumentException($"There is already a collection called {name}."); }
+    }
+
+    public static void DeleteCollection(long id)
+    {
+        using var c = Open();
+        Cmd(c, "DELETE FROM collection_items WHERE collection_id=@i", ("@i", id)).ExecuteNonQuery();
+        Cmd(c, "DELETE FROM collections WHERE id=@i", ("@i", id)).ExecuteNonQuery();
+    }
+
+    public static void AddToCollection(long id, string reference)
+    {
+        using var c = Open();
+        Cmd(c, "INSERT OR IGNORE INTO collection_items(collection_id, ref, added_at) VALUES(@i, @r, @t)", ("@i", id), ("@r", reference), ("@t", DateTimeOffset.UtcNow.ToUnixTimeSeconds())).ExecuteNonQuery();
+    }
+
+    public static void RemoveFromCollection(long id, IEnumerable<string> references)
+    {
+        using var c = Open();
+        foreach (var r in references) Cmd(c, "DELETE FROM collection_items WHERE collection_id=@i AND ref=@r", ("@i", id), ("@r", r)).ExecuteNonQuery();
+    }
 
     public const string VersionKey = "schema_version";
 
