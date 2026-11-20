@@ -2,7 +2,7 @@ using System.IO;
 
 namespace Lumina.Library;
 
-public static class Scanner
+public static partial class Scanner
 {
     static readonly HashSet<string> Ext = new(StringComparer.OrdinalIgnoreCase)
         { ".mkv", ".mp4", ".m4v", ".mov", ".avi", ".ts", ".m2ts", ".mts", ".webm", ".wmv", ".flv", ".iso" };
@@ -17,18 +17,20 @@ public static class Scanner
         // After the name rules change, every file is read again once, so old titles ("Beef 2023") get the new form ("Beef", 2023) and are matched again
         var reparse = Db.KvGet("parse_v") != ParseVersion;
         var overrides = Db.KindOverrides();
-        var n = Db.Roots().Sum(r => Scan(r, overrides, reparse));
+        var moved = Db.ShowOverrides();
+        var n = Db.Roots().Sum(r => Scan(r, overrides, moved, reparse));
         if (reparse) Db.KvSet("parse_v", ParseVersion);
+        Db.ShareMatches();
         return n;
     }
 
-    const string ParseVersion = "3";   // 3: season folders and numbered folders make shows (issue #1)
+    const string ParseVersion = "4";   // 3: season folders and numbered folders make shows (issue #1); 4: "Show Specials" joins Show (issue #16)
 
     /// <summary>What the user said this file is: its own setting first, then its folder's. Null when they said nothing.</summary>
     static string? Forced(Dictionary<string, string> overrides, string file) =>
         overrides.TryGetValue(file, out var k) ? k : overrides.TryGetValue(Path.GetDirectoryName(file) ?? "", out k) ? k : null;
 
-    static int Scan(string root, Dictionary<string, string> overrides, bool reparse = false)
+    static int Scan(string root, Dictionary<string, string> overrides, Dictionary<string, (string Title, int? Year, int Season)> moved, bool reparse = false)
     {
         // Offline NAS or unplugged drive: keep its rows instead of wiping them.
         if (!Directory.Exists(root)) return 0;
@@ -54,7 +56,42 @@ public static class Scanner
         }
         NumberedFolders(found, root, overrides);
         ForcedShows(found, root, overrides);
+        SpecialsOfShows(found, moved);
+        MovedEpisodes(found, moved);
         return Db.SyncRoot(root, found, reparse);
+    }
+
+    /// <summary>Files the user moved into another show: that show's title and season, episodes kept or numbered in name order.</summary>
+    static void MovedEpisodes(List<Found> found, Dictionary<string, (string Title, int? Year, int Season)> moved)
+    {
+        foreach (var g in found.Select((x, i) => (x, i)).Where(t => moved.ContainsKey(t.x.Path)).GroupBy(t => moved[t.x.Path]))
+        {
+            var n = 0;
+            foreach (var (x, i) in g.OrderBy(t => Path.GetFileName(t.x.Path), StringComparer.OrdinalIgnoreCase))
+            {
+                n++;
+                var ep = x.P.Kind == "show" && x.P.Episode is int e ? e : NameParser.LooseEpisode(Path.GetFileNameWithoutExtension(x.Path), x.P.Title) ?? n;
+                found[i] = x with { P = new Parsed("show", g.Key.Title, g.Key.Year, g.Key.Season, ep) };
+            }
+        }
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^(.+?)[\s._-]+(specials?|ovas?|oads?)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex SpecialsTitle();
+
+    static string Key(string title) => new(title.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
+    /// <summary>"One Punch Man Specials" or "One Punch Man OVA" is the Specials season of One Punch Man when that show is here too (issue #16).</summary>
+    static void SpecialsOfShows(List<Found> found, Dictionary<string, (string Title, int? Year, int Season)> moved)
+    {
+        var shows = found.Where(f => f.P.Kind == "show").GroupBy(f => Key(f.P.Title)).ToDictionary(g => g.Key, g => g.First().P);
+        for (int i = 0; i < found.Count; i++)
+        {
+            var f = found[i];
+            if (f.P.Kind != "show" || moved.ContainsKey(f.Path) || SpecialsTitle().Match(f.P.Title) is not { Success: true } m) continue;
+            if (!shows.TryGetValue(Key(m.Groups[1].Value), out var show)) continue;
+            found[i] = f with { P = f.P with { Title = show.Title, Year = show.Year, Season = 0 } };
+        }
     }
 
     /// <summary>Files the user said are a show but whose names say nothing of episodes: numbered in name order, season from the folder or 1.</summary>
