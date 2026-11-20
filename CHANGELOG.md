@@ -4,6 +4,8 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-20
+
 ### Added
 - **Skip intro, recap and credits**: a Skip button shows in the player while one plays. Lumina finds them from chapter names (Opening, Previously on, Ending) and from marks you set in the player's Bookmarks menu, **Skip marks**; a mark set on one episode counts for its whole season. Turn on **Skip intros and recaps on their own** in Settings, Playback, Skipping to skip without pressing anything (credits are never skipped on their own).
 - **Up Next**: when an episode's credits start (or 30 seconds before the end), a card names the next episode and counts down 10 seconds before playing it. **Play now** goes straight away; **Cancel** stays on this one. It follows Settings, Playback, After an episode.
@@ -66,6 +68,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 - Per-user installer and portable zip; file associations, jump list, taskbar progress, media keys, tray, start with Windows, single instance, an auto-hide taskbar that can be revealed in fullscreen.
 - Update check against a release feed (off by default), verified with a checksum.
 
+[0.3.0]: https://github.com/nomoron28/lumina/releases/tag/v0.3.0
 [0.2.0]: https://github.com/nomoron28/lumina/releases/tag/v0.2.0
 [0.1.1]: https://github.com/nomoron28/lumina/releases/tag/v0.1.1
 [0.1.0]: https://github.com/nomoron28/lumina/releases/tag/v0.1.0
