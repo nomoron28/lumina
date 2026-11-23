@@ -18,6 +18,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 - A show named like another show plus "Specials" or "OVA" (`One Punch Man Specials`) now becomes that show's Specials instead of a separate show. Your library is re-read once after updating.
 - When TMDB turns down your key, Lumina now says so ("TMDB did not accept your key. Check it in Settings, Accounts") instead of "Response status code does not indicate success: 401 (Unauthorized)". Edit metadata's search says the same.
 - Posters and backdrops were never downloaded when a show had a season TMDB numbers differently (common for anime): the "404 (Not Found)" for that season stopped the rest. Now that season is skipped and the artwork arrives.
+- With an auto-hiding taskbar, a window you opened from the taskbar while Lumina was maximized or fullscreen was pushed back behind it a moment later. Lumina now takes the front back only when you look at the taskbar and move away without opening anything.
 
 ## [0.2.0] - 2026-11-20
 
