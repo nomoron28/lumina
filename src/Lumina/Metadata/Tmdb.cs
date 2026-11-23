@@ -253,8 +253,15 @@ public static class Tmdb
             for (int i = 0; i < seasons.Count; i++)
             {
                 report($"Episode names {i + 1}/{seasons.Count}");
-                using var doc = await GetJson($"tv/{seasons[i].Id}/season/{seasons[i].Season}", "");
-                Db.SetSeason(seasons[i].Id, seasons[i].Season, ParseSeason(doc.RootElement));
+                // A season TMDB does not list (its numbering differs from the files', common for anime) answers 404.
+                // It used to end the whole pass, so posters and backdrops were never downloaded.
+                // ponytail: such a season is asked for again on each scan; remember the 404 if that ever costs too much.
+                try
+                {
+                    using var doc = await GetJson($"tv/{seasons[i].Id}/season/{seasons[i].Season}", "");
+                    Db.SetSeason(seasons[i].Id, seasons[i].Season, ParseSeason(doc.RootElement));
+                }
+                catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound) { }
             }
 
             var need = Db.NeedingDetail();
