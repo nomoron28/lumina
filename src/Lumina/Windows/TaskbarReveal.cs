@@ -79,6 +79,14 @@ public sealed class TaskbarReveal(Window window)
         bool near = tray != IntPtr.Zero && GetWindowRect(tray, out var tr)
             && p.X >= tr.Left - 30 && p.X <= tr.Right + 30 && p.Y >= tr.Top - 30 && p.Y <= tr.Bottom + 30;
         _away = near ? 0 : _away + 1;
-        if (_away >= 8) { _revealed = false; _away = 0; TakeFocusBack(hwnd); window.Activate(); }
+        if (_away < 8) return;
+        _revealed = false; _away = 0;
+        if (ShouldTakeBack(GetForegroundWindow(), tray)) { TakeFocusBack(hwnd); window.Activate(); }
     }
+
+    /// <summary>
+    /// Only when the taskbar itself is still in front: the user looked at it and moved away. If they opened or switched to another
+    /// window from it, that window is in front and must stay there; taking the focus back hid it behind the player.
+    /// </summary>
+    public static bool ShouldTakeBack(IntPtr foreground, IntPtr tray) => tray != IntPtr.Zero && foreground == tray;
 }
