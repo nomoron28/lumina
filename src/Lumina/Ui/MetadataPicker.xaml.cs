@@ -86,7 +86,7 @@ public partial class MetadataPicker : Window
         try { found = await Tmdb.SearchMany(_kind, title); }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or InvalidOperationException)
         {
-            if (no == _searchNo) { Results.ItemsSource = null; StatusText.Text = "TMDB did not answer. Check your connection and key, then try again."; }
+            if (no == _searchNo) { Results.ItemsSource = null; StatusText.Text = e is HttpRequestException h ? Tmdb.Problem(h) + "." : "TMDB did not answer. Check your connection and key, then try again."; }
             return;
         }
         if (no != _searchNo) return;                       // a newer search is on its way

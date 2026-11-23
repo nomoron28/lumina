@@ -311,7 +311,19 @@ public static class Tmdb
             Db.TrimArt(ArtLimitBytes);
             return "";
         }
-        catch (HttpRequestException e) { return "TMDB: " + e.Message; }
+        catch (HttpRequestException e) { return Problem(e); }
         catch (TaskCanceledException) { return "TMDB timed out"; }
     }
+
+    /// <summary>
+    /// What went wrong, in words a person can act on. .NET's own text ("Response status code does not indicate success:
+    /// 401 (Unauthorized)") reached the status bar before, and people could not tell their key was the problem.
+    /// </summary>
+    public static string Problem(HttpRequestException e) => e.StatusCode switch
+    {
+        HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => "TMDB did not accept your key. Check it in Settings, Accounts",
+        HttpStatusCode.TooManyRequests => "TMDB is busy right now. Try again in a minute",
+        { } code => $"TMDB answered with error {(int)code}. Try again later",
+        null => "Could not reach TMDB. Check your connection",
+    };
 }
