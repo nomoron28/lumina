@@ -18,6 +18,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ### Fixed
 - Trailers, featurettes and release samples no longer appear in the library as films of their own. They leave on the next scan.
 - A show named like another show plus "Specials" or "OVA" (`One Punch Man Specials`) now becomes that show's Specials instead of a separate show. Your library is re-read once after updating.
+- When TMDB turns down your key, Lumina now says so ("TMDB did not accept your key. Check it in Settings, Accounts") instead of "Response status code does not indicate success: 401 (Unauthorized)". Edit metadata's search says the same.
 
 ## [0.2.0] - 2026-11-20
 
