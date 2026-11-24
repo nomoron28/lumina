@@ -2,17 +2,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>lumina</id>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <title>Lumina</title>
     <authors>nomoron28</authors>
     <owners>nomoron28</owners>
     <projectUrl>https://github.com/nomoron28/lumina</projectUrl>
-    <iconUrl>https://cdn.jsdelivr.net/gh/nomoron28/lumina@v0.2.0/assets/brand/app-icon/app-icon-A-glow-256.png</iconUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/nomoron28/lumina@v0.3.0/assets/brand/app-icon/app-icon-A-glow-256.png</iconUrl>
     <packageSourceUrl>https://github.com/nomoron28/lumina/tree/main/packaging/chocolatey</packageSourceUrl>
     <licenseUrl>https://github.com/nomoron28/lumina/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <bugTrackerUrl>https://github.com/nomoron28/lumina/issues</bugTrackerUrl>
-    <releaseNotes>https://github.com/nomoron28/lumina/releases/tag/v0.2.0</releaseNotes>
+    <releaseNotes>https://github.com/nomoron28/lumina/releases/tag/v0.3.0</releaseNotes>
     <tags>media-player video-player media-library mpv movies tv-shows</tags>
     <summary>A media library and video player for Windows: your folders as a poster wall, and a libmpv player.</summary>
     <description>Lumina scans your local folders and network shares, fills in posters, summaries, cast and ratings, remembers where you stopped, and plays everything through libmpv with hardware decoding, HDR tone mapping and bit-perfect audio. No account and no telemetry.</description>
