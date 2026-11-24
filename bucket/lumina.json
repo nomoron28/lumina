@@ -1,12 +1,12 @@
 {
-    "version":  "0.2.0",
+    "version":  "0.3.0",
     "description":  "A media library and video player for Windows: your folders as a poster wall, and a libmpv player.",
     "homepage":  "https://github.com/nomoron28/lumina",
     "license":  "GPL-3.0-or-later",
     "architecture":  {
                          "64bit":  {
-                                       "url":  "https://github.com/nomoron28/lumina/releases/download/v0.2.0/Lumina-0.2.0-portable.zip",
-                                       "hash":  "a7f3c5525462353f619a1f72c3dc0199f38bc8e06019e027526fa26470121e4b"
+                                       "url":  "https://github.com/nomoron28/lumina/releases/download/v0.3.0/Lumina-0.3.0-portable.zip",
+                                       "hash":  "5e6810ae30685d208c3ce13f3e8b61e88b5bba67e6342c1461b411283fda6f2a"
                                    }
                      },
     "bin":  "Lumina.exe",
