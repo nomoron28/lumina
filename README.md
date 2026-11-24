@@ -34,28 +34,33 @@ Most players are either a bare video window or a heavy media server. Lumina is a
 | ![Movies](docs/images/movies.png) | ![Show details](docs/images/details.png) |
 | **Library.** Posters, an unwatched marker, sort and filter. | **Details.** Title art, resume with progress, episodes, cast, ratings. |
 | ![Player](docs/images/player.png) | ![Settings](docs/images/settings.png) |
-| **Player.** One slim bar: transport left, seek bar in the middle, volume and tools right. | **Settings.** Searchable, grouped, nine accent colours. |
+| **Player.** libmpv with one control bar; Modern, VLC, Classic and Floating styles. | **Settings.** Searchable, grouped, nine accent colours. |
 
 ## Features
 
 **Library**
 - Folders and network shares, rescanned when they change; movies and TV shows told apart from file names.
 - Posters, backdrops, title logos, summaries, genres, certificates, cast and crew from [TMDB](https://www.themoviedb.org/); IMDb and Rotten Tomatoes scores through [OMDb](https://www.omdbapi.com/).
-- Continue watching, recently added, unwatched, top rated, genres, favourites, playlists.
-- Fix a wrong match: right-click a title, **Edit metadata**, and pick the right one from a list.
+- Continue watching, recently added, unwatched, top rated, genres, favourites, playlists. **Customise Home** hides rows and changes their order.
+- Your own **collections** (a Terminator collection, say), with a row on Home and titles in release order.
+- Trailers and bonus videos named the Plex or Jellyfin way (`-trailer`, `Extras/`, `Featurettes/`) show as **Extras** on their title instead of as separate films.
+- Fix a wrong match: right-click a title, **Edit metadata**, and pick the right one from a list. Specials filed as a show of their own can be moved into their show with **Move into show**.
 - Per-folder PIN lock, watched marks, bookmarks, and resume points.
 - Optional two-way sync of watched status with [Trakt](https://trakt.tv/).
 
 **Player**
 - libmpv engine with hardware decoding (zero-copy Direct3D 11, with a fallback), HDR to SDR tone mapping, and bit-perfect high-resolution audio (WASAPI exclusive).
+- **Skip intro, recap and credits**, found from chapter names or from marks you set once for a season, with optional auto-skip. An **Up Next** card counts down to the next episode.
+- **Play with** VLC, PotPlayer, MPC-HC/BE, mpv or any program, for everything or for one title; it starts at your resume point with your subtitle.
 - Subtitles from the file, from sidecar files, or from [OpenSubtitles](https://www.opensubtitles.com/) with a list of matches to choose from; size, position and delay remembered per video.
 - Audio and subtitle track pickers, chapters, A-B loop, speed from 0.1x, aspect ratio and crop presets as in VLC, rotate, zoom and picture adjustments.
 - Seek-bar preview thumbnails (switchable), mouse-wheel scrubbing, frame step, snapshots, recording, sleep timer and a miniplayer.
 - Equaliser, compressor, spatial sound and loudness options.
-- Mouse, keyboard and touch. See [docs/shortcuts.md](docs/shortcuts.md).
+- Mouse, keyboard and touch, with swipes over the picture for seeking, volume and brightness. See [docs/shortcuts.md](docs/shortcuts.md).
 
 **Windows integration**
 - Per-user installer (no administrator rights) and a portable zip; "Open with" and file associations; single instance; jump list and taskbar progress; media keys and the Now Playing overlay; tray icon and start with Windows; auto-hide taskbar reveal in fullscreen.
+- Checks for a new version once a day (only asks GitHub's release feed) and installs it when you say yes; switch it off in Settings, Advanced.
 
 ## Install
 
@@ -78,7 +83,7 @@ Requirements: Windows 10 version 1809 or newer, 64-bit. Nothing else needs insta
 
 ### Getting posters, summaries and subtitles
 
-Lumina works without any keys, but artwork and subtitles come from free services that each need a key. Add yours once in **Settings, Accounts**:
+Lumina works without any keys, but artwork and subtitles come from free services that each need a key. The welcome tour asks for them, with a **Test** button for each and a link to sign up; you can also add or change them later in **Settings, Accounts**. For TMDB, either the API Key or the API Read Access Token works.
 
 | Service | Used for | Where to get a key |
 |---|---|---|
