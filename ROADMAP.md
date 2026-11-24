@@ -6,9 +6,9 @@ Each release keeps room for bug fixes. Finished work moves to the [CHANGELOG](CH
 
 | Version | Theme | Highlights | Target |
 |---|---|---|---|
-| **0.1.1** | Steady | Better TV-show detection for loosely named files, "This is a show / movie" switch, Report a problem, release builds in CI | Nov 2026 |
-| **0.2** | Easy start | First-run setup for TMDB, OMDb and OpenSubtitles keys; **play with another player** (VLC, PotPlayer, MPC-HC/BE, mpv, custom); winget, Scoop and Chocolatey; signed installer | Dec 2026 |
-| **0.3** | Skip the boring bits | Skip intro, recap and credits (from chapters and marks you set); Up Next countdown; local extras and trailers; touch swipe gestures; reorder and hide Home rows ([#15](https://github.com/nomoron28/lumina/issues/15)); move specials into their show and make your own collections ([#16](https://github.com/nomoron28/lumina/issues/16)) | Dec 2026 |
+| **0.1.1** | Steady | Better TV-show detection for loosely named files, "This is a show / movie" switch, Report a problem, release builds in CI | Released 11 Nov 2026 |
+| **0.2** | Easy start | First-run setup for TMDB, OMDb and OpenSubtitles keys; **play with another player** (VLC, PotPlayer, MPC-HC/BE, mpv, custom); winget, Scoop and Chocolatey (Scoop works now; winget and Chocolatey are with their moderators); signed installer (waiting on SignPath) | Released 20 Nov 2026 |
+| **0.3** | Skip the boring bits | Skip intro, recap and credits (from chapters and marks you set); Up Next countdown; local extras and trailers; touch swipe gestures; reorder and hide Home rows ([#15](https://github.com/nomoron28/lumina/issues/15)); move specials into their show and make your own collections ([#16](https://github.com/nomoron28/lumina/issues/16)) | Released 24 Nov 2026 |
 | **0.4** | Collections | Automatic box sets from TMDB, multiple versions of a film, smart playlists, cast pages; edit any title's metadata by hand (title, year, summary, genres, poster and backdrop), kept when Lumina refreshes from TMDB | Jan 2027 |
 | **0.5** | Speaks your language | Translatable interface with community translations | Feb 2027 |
 | **0.6** | Your servers, part 1 | Jellyfin and Emby libraries, with progress synced back | Feb 2027 |
