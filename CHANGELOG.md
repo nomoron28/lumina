@@ -4,7 +4,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-11-20
+## [0.3.0] - 2026-11-24
 
 ### Added
 - **Skip intro, recap and credits**: a Skip button shows in the player while one plays. Lumina finds them from chapter names (Opening, Previously on, Ending) and from marks you set in the player's Bookmarks menu, **Skip marks**; a mark set on one episode counts for its whole season. Turn on **Skip intros and recaps on their own** in Settings, Playback, Skipping to skip without pressing anything (credits are never skipped on their own).
