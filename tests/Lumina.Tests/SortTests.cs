@@ -7,10 +7,10 @@ public class SortTests
 {
     static long _id = 5000;
 
-    static LibraryEntry E(string title, int? year = null, double? rating = null, long added = 0, long played = 0) =>
+    static LibraryEntry E(string title, int? year = null, double? rating = null, long added = 0, long played = 0, long size = 0) =>
         LibraryEntry.Build(new[]
         {
-            new MediaItem { Id = ++_id, Path = $"x/{title}.mkv", Kind = "movie", Title = title, Year = year, MetaYear = year, Rating = rating, AddedAt = added, PlayedAt = played, Duration = 100 },
+            new MediaItem { Id = ++_id, Path = $"x/{title}.mkv", Kind = "movie", Title = title, Year = year, MetaYear = year, Rating = rating, AddedAt = added, PlayedAt = played, Duration = 100, Size = size },
         })[0];
 
     static string[] Order(SortKey k, params LibraryEntry[] e) => LibrarySort.Apply(e, k).Select(x => x.Title).ToArray();
@@ -39,6 +39,19 @@ public class SortTests
         Assert.Equal(new[] { "Zero", "Unrated" }, Order(SortKey.Rating, E("Unrated"), E("Zero", rating: 0)));
 
     [Fact]
+    public void SizeIsLargestFirstWithTitleBreakingTies() =>
+        Assert.Equal(new[] { "Big", "A", "B" }, Order(SortKey.Size, E("B", size: 5), E("A", size: 5), E("Big", size: 900)));
+
+    [Fact]
+    public void ShowSizeSumsItsEpisodes()
+    {
+        MediaItem Ep(int n, long size) => new() { Id = ++_id, Path = $"x/Show/S01E0{n}.mkv", Kind = "show", Title = "Show", Season = 1, Episode = n, AddedAt = 1, Duration = 100, Size = size };
+        var show = LibraryEntry.Build(new[] { Ep(1, 300), Ep(2, 300) })[0];
+        Assert.Equal(600, show.Size);
+        Assert.Equal(new[] { "Show", "Movie" }, Order(SortKey.Size, E("Movie", size: 500), show));
+    }
+
+    [Fact]
     public void EmptyAndSingleListsAreFine()
     {
         Assert.Empty(LibrarySort.Apply(Array.Empty<LibraryEntry>(), SortKey.Rating));
@@ -60,6 +73,7 @@ public class SortTests
     [InlineData("watched", SortKey.Watched)]
     [InlineData("year", SortKey.Year)]
     [InlineData("rating", SortKey.Rating)]
+    [InlineData("size", SortKey.Size)]
     [InlineData("nonsense", SortKey.Title)]
     [InlineData(null, SortKey.Title)]
     public void SettingValuesParseAndUnknownOnesFallBackToTitle(string? value, SortKey expected) => Assert.Equal(expected, LibrarySort.Parse(value));
