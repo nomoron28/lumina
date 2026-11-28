@@ -4,6 +4,9 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+- The window now fits small screens: on a 1366×768 screen it used to open taller than the screen, with the title bar out of reach ([#34](https://github.com/nomoron28/lumina/issues/34)). It opens inside the usable area, and a saved size or position that hangs off the screen is pulled back in.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added
