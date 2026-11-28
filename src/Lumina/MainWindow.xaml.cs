@@ -3071,6 +3071,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         else if (e.ButtonState == MouseButtonState.Pressed) DragMove();
     }
 
+    /// <summary>The empty part of a page's header drags the window like the strip above it.</summary>
+    void OnPagesHeaderDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.Handled || Stage.IsVisible || e.GetPosition(Pages).Y > DragZone.HeaderHeight || !DragZone.IsEmptyArea(e.OriginalSource as DependencyObject)) return;
+        OnDragStrip(sender, e);
+    }
+
     /// <summary>Tear down the player without touching the page the user sees.</summary>
     void StopPlayback()
     {

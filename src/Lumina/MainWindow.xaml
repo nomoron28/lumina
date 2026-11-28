@@ -213,7 +213,7 @@
         </Border>
 
         <!-- ================= Pages ================= -->
-        <Grid x:Name="Pages" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="0,12,0,0" Focusable="True" FocusVisualStyle="{x:Null}">
+        <Grid x:Name="Pages" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="0,12,0,0" Focusable="True" FocusVisualStyle="{x:Null}" MouseLeftButtonDown="OnPagesHeaderDrag">
 
             <!-- Home -->
             <ScrollViewer x:Name="HomePage" VerticalScrollBarVisibility="Auto" Visibility="Visible">
