@@ -240,7 +240,7 @@ public static class Trakt
         var list = rows.ToList();
         return new
         {
-            movies = list.Where(r => r.Kind == "movie")
+            movies = list.Where(r => r.Kind == "movie").GroupBy(r => r.TmdbId).Select(g => g.MaxBy(r => r.PlayedAt)!)   // two versions of a film are one play
                 .Select(r => new { watched_at = Iso(r.PlayedAt > 0 ? r.PlayedAt : DateTimeOffset.UtcNow.ToUnixTimeSeconds()), ids = new { tmdb = r.TmdbId } }).ToList(),
             shows = list.Where(r => r.Kind == "show").GroupBy(r => r.TmdbId).Select(g => new
             {

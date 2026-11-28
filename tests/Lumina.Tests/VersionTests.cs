@@ -68,7 +68,7 @@ public class VersionTests : IDisposable
         TwoCopies();
         var film = Assert.Single(Entries());
         Assert.True(film.HasVersions);
-        Assert.Equal("movie:tmdb:438631", film.Key);
+        Assert.Equal("movie:" + film.Items.Min(i => i.Id), film.Key);   // the lowest file id: a copy added later never changes it
         Assert.Equal(new[] { "Dune (2021) 2160p.mkv", "Dune (2021) 1080p.mkv" }, film.Items.Select(i => Path.GetFileName(i.Path)));
         Assert.Equal("Dune (2021) 2160p.mkv", Path.GetFileName(film.Next.Path));   // Play opens the biggest copy until one is watched
     }
@@ -127,7 +127,7 @@ public class VersionTests : IDisposable
         Match("Dune", 2021, 438631);
 
         var members = Collections.Members(Entries(), Db.Collections().Single());
-        Assert.Equal("movie:tmdb:438631", Assert.Single(members).Key);
+        Assert.Equal(2, Assert.Single(members).Items.Count);
     }
 
     [Fact]
@@ -135,5 +135,64 @@ public class VersionTests : IDisposable
     {
         TwoCopies();
         Assert.Equal(1000, Entries().Single().Size);
+    }
+
+    [Fact]
+    public void TheKeyStaysTheSameWhenASecondCopyArrives()
+    {
+        File_("Dune (2021) 2160p.mkv", 900);
+        Scanner.ScanAll();
+        Match("Dune", 2021, 438631);
+        var before = Entries().Single().Key;
+
+        File_("Dune (2021) 1080p.mkv", 100);   // found by a later scan: a higher file id
+        Scanner.ScanAll();
+        Match("Dune", 2021, 438631);
+        Assert.Equal(before, Entries().Single().Key);
+        Assert.True(Entries().Single().HasVersions);
+    }
+
+    [Fact]
+    public void AHalfWatchedVersionStaysInContinueWatchingEvenWhenAnotherWasOpenedLater()
+    {
+        TwoCopies();
+        var film = Entries().Single();
+        Db.SetWatch(film.Items[0].Id, 600, watched: false, playedAt: 1_700_000_000);   // the 4K copy, paused
+        Db.SetWatch(film.Items[1].Id, 2, watched: false, playedAt: 1_700_000_500);     // the 1080p copy opened later, left after two seconds
+
+        film = Entries().Single();
+        Assert.Contains("2160p", film.ContinueItem!.Path);   // not the copy that is merely newest
+        Assert.True(film.InProgress);
+        Assert.Contains("2160p", film.Next.Path);
+        Assert.Single(LibraryEntry.ContinueWatching(Entries()));
+    }
+
+    [Fact]
+    public void FinishingOneVersionWhileAnotherIsHalfWatchedMakesTheFilmWatched()
+    {
+        TwoCopies();
+        var film = Entries().Single();
+        Db.SetWatch(film.Items[0].Id, 600, watched: false, playedAt: 1_700_000_000);
+        Db.SetWatch(film.Items[1].Id, 0, watched: true, playedAt: 1_700_000_500);
+
+        film = Entries().Single();
+        Assert.True(film.AllWatched);
+        Assert.False(film.InProgress);
+        Assert.Null(film.ContinueItem);
+        Assert.Empty(LibraryEntry.ContinueWatching(Entries()));
+    }
+
+    [Fact]
+    public void TheFilmsCountAndTraktSeeOneFilm()
+    {
+        TwoCopies();
+        File_("Alien (1979).mkv", 50);
+        Scanner.ScanAll();
+        Assert.Equal(2, LibraryStats.From(Db.List()).Films);   // Dune once, Alien once
+
+        var rows = Db.List().Where(i => i.Title == "Dune").Select(i => new LocalRow(i.Id, "movie", 438631, null, null, 0, true, 1_700_000_000 + i.Id, null)).ToList();
+        Assert.Equal(2, rows.Count);
+        var body = System.Text.Json.JsonSerializer.SerializeToElement(Lumina.Sync.Trakt.HistoryBody(rows));
+        Assert.Equal(1, body.GetProperty("movies").GetArrayLength());
     }
 }

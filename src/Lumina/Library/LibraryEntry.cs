@@ -40,7 +40,13 @@ public class LibraryEntry
     /// <summary>A show: every episode watched. A film: any of its versions watched.</summary>
     public bool AllWatched => Items.Count > 0 && (IsShow ? Items.All(i => i.Watched) : Items.Any(i => i.Watched));
     public bool AnyUnwatched => IsShow ? Items.Any(i => !i.Watched) : Items.Count > 0 && !Items.Any(i => i.Watched);
-    public bool InProgress => Items.Any(i => i.CanResume);
+    public bool InProgress => IsShow ? Items.Any(i => i.CanResume) : Resume != null;
+
+    /// <summary>
+    /// A film's version to pick up where it was left: the first (last watched) one that is partway through, unless a version has been watched to
+    /// the end, which makes the film watched.
+    /// </summary>
+    MediaItem? Resume => Items.Any(i => i.Watched) ? null : Items.FirstOrDefault(i => i.CanResume);
 
     /// <summary>
     /// What "Continue watching" should open, or null if this entry does not belong there.
@@ -51,7 +57,7 @@ public class LibraryEntry
         get
         {
             if (Items.Count == 0) return null;
-            if (!IsShow) return Items[0].CanResume ? Items[0] : null;
+            if (!IsShow) return Resume;
             var started = Items.Any(i => i.Watched || i.CanResume);
             if (!started) return null;
             var next = Next;
@@ -98,7 +104,7 @@ public class LibraryEntry
         : Year?.ToString() ?? "";
 
     /// <summary>Movie: how far through. Show: share of episodes watched.</summary>
-    public double Percent => Items.Count == 0 ? 0 : IsShow ? Items.Count(i => i.Watched) * 100.0 / Items.Count : Items[0].Percent;
+    public double Percent => Items.Count == 0 ? 0 : IsShow ? Items.Count(i => i.Watched) * 100.0 / Items.Count : (Resume ?? Items[0]).Percent;
 
     /// <summary>The line under the title on the details page.</summary>
     public string Meta => string.Join("  ·  ", new[]
@@ -117,7 +123,7 @@ public class LibraryEntry
     {
         get
         {
-            if (!IsShow) return Items[0];
+            if (!IsShow) return Resume ?? Items[0];
             var inProgress = Items.FirstOrDefault(i => i.CanResume);
             if (inProgress != null) return inProgress;
             var lastWatched = Items.FindLastIndex(i => i.Watched);
@@ -153,7 +159,7 @@ public class LibraryEntry
             first = ordered[0];
             entries.Add(new LibraryEntry
             {
-                Key = first.Kind == "movie" ? (ordered.Count > 1 ? "movie:tmdb:" + first.TmdbId : "movie:" + first.Id) : "show:" + (first.TmdbId > 0 ? first.TmdbId.ToString() : first.Title.ToLowerInvariant()),
+                Key = first.Kind == "movie" ? "movie:" + ordered.Min(i => i.Id) : "show:" + (first.TmdbId > 0 ? first.TmdbId.ToString() : first.Title.ToLowerInvariant()),
                 Kind = first.Kind,
                 Title = first.Title,
                 TmdbId = first.TmdbId,

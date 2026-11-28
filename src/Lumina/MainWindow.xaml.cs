@@ -232,6 +232,28 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 menu.Items.Add(new Separator());
                 Add("Show in Explorer", () => Reveal(en.Next.Path), Explorer.CanReveal(en.Next.Path));
                 Add("Hide from library...", () => HideItems(en.Items, en.Title));
+                if (en.HasVersions)
+                {
+                    // the actions above apply to every version; these reach one file, so a wrong match or a spare copy can be dealt with alone
+                    menu.Items.Add(new Separator());
+                    foreach (var v in en.Items)
+                    {
+                        var sub = new MenuItem { Header = "Version: " + Versions.Label(v) };
+                        System.Windows.Automation.AutomationProperties.SetName(sub, "Version " + Versions.Label(v));
+                        void AddSub(string header, Action act, bool enabled = true)
+                        {
+                            var mi = new MenuItem { Header = header, IsEnabled = enabled };
+                            System.Windows.Automation.AutomationProperties.SetName(mi, header);
+                            mi.Click += (_, _) => act();
+                            sub.Items.Add(mi);
+                        }
+                        AddSub("Play this version", () => Play(v.Path, v));
+                        AddSub("Edit metadata for this file...", () => EditMetadata(en, new[] { v }), !string.IsNullOrEmpty(Config.TmdbKey));
+                        AddSub("Show in Explorer", () => Reveal(v.Path), Explorer.CanReveal(v.Path));
+                        AddSub("Hide this file...", () => HideItems(new[] { v }, Path.GetFileName(v.Path)));
+                        menu.Items.Add(sub);
+                    }
+                }
                 break;
             case MediaItem ep:
                 Add(ep.PlayText, () => Play(ep.Path, ep));
@@ -402,16 +424,17 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     }
 
     /// <summary>Right-click, Edit metadata: search TMDB by hand and choose which title this movie or show is.</summary>
-    async void EditMetadata(LibraryEntry en)
+    async void EditMetadata(LibraryEntry en, IReadOnlyList<MediaItem>? only = null)
     {
         try
         {
-            var first = en.Items[0];
+            var files = only ?? en.Items;   // one version of a film can be pointed somewhere else on its own
+            var first = files[0];
             var shown = en.IsShow ? en.Title : Path.GetFileName(first.Path);
             var query = first.FileYear is { } fy ? $"{first.FileTitle} {fy}" : first.FileTitle;
             var choice = MetadataPicker.Show(this, shown, en.IsShow ? "show" : "movie", query, en.TmdbId);
             if (choice == null) return;
-            Db.AssignMatch(en.Items.Select(i => i.Id), choice.Meta);
+            Db.AssignMatch(files.Select(i => i.Id), choice.Meta);
             Refresh();
             Status.Text = choice.Meta == null ? "Using the file's own information." : "Getting details for " + choice.Meta.Title;
             await Rescan();
@@ -884,10 +907,12 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     void ShowDetails(string key, bool inPlace = false)
     {
-        var en = _entries.FirstOrDefault(x => x.Key == key);
+        var sameTitle = _detailsKey == key;   // before the key may change below
+        var en = _entries.FirstOrDefault(x => x.Key == key)
+            ?? (_selEp is { } open && _detailsKey == key ? _entries.FirstOrDefault(x => x.Items.Any(i => i.Id == open.Id)) : null);   // a film's key changes when its first file goes
+        if (en != null) key = en.Key;
         if (en == null) { _detailsKey = null; ShowPage(_page == Page.Details ? _prevPage : _page); return; } // removed or rescanned away
         if (_page != Page.Details) _prevPage = _page;
-        var sameTitle = _detailsKey == key;
         _detailsKey = key;
         _entry = en;
 
@@ -905,6 +930,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         DCastBlock.Visibility = detail is { Cast.Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
         if (!sameTitle) _ = FillExtras(en);
 
+        FillVersions(en, sameTitle && _selEp != null ? en.Items.FirstOrDefault(i => i.Id == _selEp.Id) : null);   // also hides the picker for a show
         DShowBlock.Visibility = en.IsShow ? Visibility.Visible : Visibility.Collapsed;
         DEpisodeTitle.Visibility = en.IsShow ? Visibility.Visible : Visibility.Collapsed;
         if (en.IsShow)
@@ -916,7 +942,6 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         }
         else
         {
-            FillVersions(en, sameTitle && _selEp != null ? en.Items.FirstOrDefault(i => i.Id == _selEp.Id) : null);
             Select(en, DVersion.SelectedItem is ComboBoxItem { Tag: MediaItem v } ? v : en.Items[0]);
         }
 
