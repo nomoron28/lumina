@@ -264,6 +264,8 @@ public static class Catalog
         Button("library.folders", "library", "Folders", "Manage folders", "open-folders", "Add or remove the folders Lumina scans."),
         Button("library.unhide", "library", "Folders", "Show hidden titles again", "unhide",
             "Brings back everything you hid with Hide from library. Your files are never touched."),
+        Button("library.unhideBoxSets", "library", "Folders", "Show hidden box sets again", "unhide-boxsets",
+            "Brings back every box set you hid from Home. Box sets are the groups TMDB puts films in, such as a trilogy."),
         Button("library.rescan", "library", "Folders", "Scan now", "rescan"),
 
         // ---------------- Network ----------------

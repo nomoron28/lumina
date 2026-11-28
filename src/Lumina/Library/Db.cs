@@ -196,6 +196,12 @@ public static class Db
         """
         CREATE TABLE skip_marks(scope TEXT NOT NULL COLLATE NOCASE, kind TEXT NOT NULL, start REAL, end_at REAL, PRIMARY KEY(scope, kind));
         """,
+        // v10: the TMDB box set a film belongs to, and the box sets the user hid. Films already matched ask TMDB for their details once more to learn their box set.
+        """
+        ALTER TABLE meta ADD COLUMN collection_id INTEGER;
+        CREATE TABLE tmdb_collections(id INTEGER PRIMARY KEY, name TEXT NOT NULL, backdrop_path TEXT, hidden INTEGER NOT NULL DEFAULT 0);
+        UPDATE meta SET detail_at=NULL WHERE kind='movie';
+        """,
     };
 
     public static List<SkipMark> Marks(string scope)
@@ -233,6 +239,35 @@ public static class Db
         using (var r = Cmd(c, "SELECT collection_id, ref FROM collection_items ORDER BY added_at").ExecuteReader())
             while (r.Read()) list.FirstOrDefault(x => x.Id == r.GetInt64(0))?.Refs.Add(r.GetString(1));
         return list;
+    }
+
+    /// <summary>
+    /// The box sets TMDB says the matched films belong to, as collections with a negative id (minus the TMDB id) so they never clash with the user's own.
+    /// A film is held by its TMDB id, the same way <see cref="Collections.Ref"/> names it. Hidden box sets are left out unless asked for.
+    /// </summary>
+    public static List<Collection> BoxSets(bool includeHidden = false)
+    {
+        var list = new List<Collection>();
+        using var c = Open();
+        using (var r = Cmd(c, "SELECT id, name FROM tmdb_collections WHERE hidden=0 OR @all=1 ORDER BY name COLLATE NOCASE", ("@all", includeHidden ? 1 : 0)).ExecuteReader())
+            while (r.Read()) list.Add(new Collection(-r.GetInt64(0), r.GetString(1), new List<string>()));
+        using (var r = Cmd(c, "SELECT collection_id, tmdb_id FROM meta WHERE kind='movie' AND collection_id IS NOT NULL ORDER BY tmdb_id").ExecuteReader())
+            while (r.Read()) list.FirstOrDefault(x => x.Id == -r.GetInt64(0))?.Refs.Add($"movie:tmdb:{r.GetInt64(1)}");
+        return list;
+    }
+
+    /// <summary>Hide a box set from Home and the lists (it can be brought back from Settings).</summary>
+    public static void HideBoxSet(long id)
+    {
+        using var c = Open();
+        Cmd(c, "UPDATE tmdb_collections SET hidden=1 WHERE id=@i", ("@i", Math.Abs(id))).ExecuteNonQuery();
+    }
+
+    /// <summary>Bring every hidden box set back. Returns how many there were.</summary>
+    public static int UnhideBoxSets()
+    {
+        using var c = Open();
+        return Cmd(c, "UPDATE tmdb_collections SET hidden=0 WHERE hidden=1").ExecuteNonQuery();
     }
 
     /// <summary>A new collection, or the existing one of that name (names are unique, ignoring case).</summary>
@@ -522,6 +557,10 @@ public static class Db
         Cmd(c, "UPDATE meta SET runtime=@rt,certification=@cert,genres=@g,tagline=@t,logo_path=@l,imdb_id=@i,detail_at=@now WHERE kind=@k AND tmdb_id=@id",
             ("@rt", d.Runtime), ("@cert", d.Certification), ("@g", d.Genres.Count == 0 ? null : string.Join("|", d.Genres)), ("@t", d.Tagline),
             ("@l", d.Logo), ("@i", d.ImdbId), ("@now", DateTimeOffset.UtcNow.ToUnixTimeSeconds()), ("@k", kind), ("@id", id)).ExecuteNonQuery();
+        Cmd(c, "UPDATE meta SET collection_id=@b WHERE kind=@k AND tmdb_id=@id", ("@b", d.Box?.Id), ("@k", kind), ("@id", id)).ExecuteNonQuery();
+        if (d.Box is { } box)
+            Cmd(c, "INSERT INTO tmdb_collections(id,name,backdrop_path) VALUES(@i,@n,@b) ON CONFLICT(id) DO UPDATE SET name=@n, backdrop_path=COALESCE(@b,backdrop_path)",
+                ("@i", box.Id), ("@n", box.Name), ("@b", box.Backdrop)).ExecuteNonQuery();
         Cmd(c, "DELETE FROM credits WHERE kind=@k AND tmdb_id=@id", ("@k", kind), ("@id", id)).ExecuteNonQuery();
         for (int i = 0; i < d.Cast.Count; i++)
             Cmd(c, "INSERT INTO credits(kind,tmdb_id,pos,person,role,photo_path) VALUES(@k,@id,@p,@n,@r,@ph)",

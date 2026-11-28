@@ -2,11 +2,14 @@ using System.Text.Json;
 
 namespace Lumina.Metadata;
 
+/// <summary>The TMDB box set a film belongs to ("The Terminator Collection").</summary>
+public record BoxSet(long Id, string Name, string? Backdrop);
+
 /// <summary>One person on a title's cast and crew row. Role is the character, or "Director" / "Creator".</summary>
 public record Credit(string Person, string Role, string? Photo);
 
 /// <summary>Everything the details page shows beyond the basic match: runtime, rating certificate, genres, logo and people.</summary>
-public record Detail(int? Runtime, string? Certification, IReadOnlyList<string> Genres, string? Tagline, string? Logo, string? ImdbId, IReadOnlyList<Credit> Cast)
+public record Detail(int? Runtime, string? Certification, IReadOnlyList<string> Genres, string? Tagline, string? Logo, string? ImdbId, IReadOnlyList<Credit> Cast, BoxSet? Box = null)
 {
     public static readonly Detail Empty = new(null, null, Array.Empty<string>(), null, null, null, Array.Empty<Credit>());
 }

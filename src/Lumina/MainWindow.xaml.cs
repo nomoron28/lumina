@@ -249,6 +249,9 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 Add("Show in Explorer", () => Reveal(ep.Path), Explorer.CanReveal(ep.Path));
                 Add("Hide from library...", () => HideItems(new[] { ep }, ep.EpisodeTitle));
                 break;
+            case GenreTile { Kind: "collection", CollectionId: < 0 } box:
+                Add("Hide this box set", () => { Db.HideBoxSet(box.CollectionId); RefreshHome(); });
+                break;
             case GenreTile { Kind: "collection" } tile:
                 Add("Rename collection...", () => RenameCollection(tile));
                 Add("Delete collection...", () => DeleteCollection(tile));
@@ -285,7 +288,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         add.Items.Add(fresh);
         menu.Items.Add(add);
 
-        if (CurrentCollection is { } cur && Collections.Contains(cur, en))
+        if (CurrentCollection is { BoxSet: false } cur && Collections.Contains(cur, en))
         {
             var remove = new MenuItem { Header = $"Remove from {cur.Name}" };
             System.Windows.Automation.AutomationProperties.SetName(remove, $"Remove from {cur.Name}");
@@ -665,7 +668,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ShowPage(Page.Library);
     }
 
-    Collection? CurrentCollection => _libMode == "collection" ? Db.Collections().FirstOrDefault(c => c.Id == _collectionId) : null;
+    Collection? CurrentCollection => _libMode == "collection" ? Db.Collections().Concat(Db.BoxSets()).FirstOrDefault(c => c.Id == _collectionId) : null;
 
     void OnTile(object sender, RoutedEventArgs e)
     {
@@ -723,7 +726,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         TileFoldersCount.Text = Count(Db.Roots().Count, "folder");
 
         ShelfFavourites.SetItems(HomeShelves.Favourites(_entries, Db.Favourites()).Take(20));
-        ShelfCollections.SetItems(Collections.Tiles(_entries, Db.Collections()));
+        ShelfCollections.SetItems(Collections.Tiles(_entries, Db.Collections().Concat(Db.BoxSets())));
         ShelfFilmGenres.SetItems(HomeShelves.Genres(_entries, "movie"));
         ShelfShowGenres.SetItems(HomeShelves.Genres(_entries, "show"));
         ShelfTopRated.SetItems(HomeShelves.TopRated(_entries, "movie"));
@@ -1359,6 +1362,13 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
                 Db.UnhideAll();
                 if (n > 0) await Rescan();
                 _settings?.Say(n == 0 ? "Nothing was hidden." : $"{Count(n, "file")} brought back.");
+                break;
+            }
+            case "unhide-boxsets":
+            {
+                var n = Db.UnhideBoxSets();
+                RefreshHome();
+                _settings?.Say(n == 0 ? "No box set was hidden." : $"{Count(n, "box set")} brought back.");
                 break;
             }
             case "assoc-add":
