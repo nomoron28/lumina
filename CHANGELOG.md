@@ -5,6 +5,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- **Box sets**: when TMDB puts your films in a set, such as a trilogy, Lumina groups the ones you own in a box set tile in Home's Collections row, in release order. A set needs at least two of your films to show. Right-click a box set tile, **Hide this box set**, to get rid of one; **Show hidden box sets again** is in Settings, Library. After updating, Lumina asks TMDB about your films once more to learn their sets.
 - Sort the library by **File size, largest first** (a show counts all its episodes), in Settings, Interface or the sort menu.
 - **Use my own mpv.conf** (Settings, Advanced, off by default): Lumina also reads `%APPDATA%\mpv\mpv.conf`, after its own settings and before Extra mpv options. Lines that would break the window or controller are skipped and noted in the log.
 - Drag the window from the empty space along the top of any page, not just the thin strip above it; double-click there to maximise or restore.

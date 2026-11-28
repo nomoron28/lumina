@@ -1,7 +1,11 @@
 namespace Lumina.Library;
 
 /// <summary>A collection the user made, such as "Terminator" (issue #16). Refs say which titles are in it.</summary>
-public sealed record Collection(long Id, string Name, List<string> Refs);
+public sealed record Collection(long Id, string Name, List<string> Refs)
+{
+    /// <summary>A box set TMDB put these films in (its id is negative), as opposed to a collection the user made.</summary>
+    public bool BoxSet => Id < 0;
+}
 
 /// <summary>
 /// How a collection holds on to a title: its TMDB id when it has one ("movie:tmdb:218"), otherwise a film's file path or a
@@ -39,7 +43,7 @@ public static class Collections
         foreach (var c in collections)
         {
             var members = Members(all, c);
-            if (members.Count == 0) continue;
+            if (members.Count == 0 || c.BoxSet && members.Count < 2) continue;   // a box set of one film is just that film
             var (from, to) = HomeShelves.Colours(c.Name);
             var back = members.Where(e => e.Backdrop != null).OrderByDescending(e => e.Rating ?? 0).FirstOrDefault()?.Backdrop;
             tiles.Add(new GenreTile("collection", c.Name, members.Count, back, from, to) { CollectionId = c.Id });

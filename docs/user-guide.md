@@ -6,6 +6,8 @@
 
 **Collections** group titles your way, such as every Terminator film. Right-click a film or show, **Add to collection**, then pick one or make a **New collection**. Collections appear as a row on Home, in release order inside; right-click one to rename or delete it (the titles stay in your library).
 
+**Box sets** are the groups TMDB puts films in, such as a trilogy. When you own at least two films of a set, it appears in the same Collections row, in release order. Right-click a box set and choose **Hide this box set** to remove it; **Show hidden box sets again** in Settings, Library brings them back. Box sets need a TMDB key, and you cannot rename them or change what is in them: make your own collection for that.
+
 **Movies** and **TV shows** list your titles as posters. A small dot in the corner means you have not started it yet. Use the filter chips (All, Unwatched, In progress), the sort menu (A to Z, recently added or watched, year, rating, file size), and the grid or list and S, M, L size buttons.
 
 **Search** (top of the sidebar) finds titles as you type.

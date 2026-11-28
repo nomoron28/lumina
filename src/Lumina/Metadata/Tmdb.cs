@@ -110,7 +110,11 @@ public static class Tmdb
                     if (Str(a, "name") is { } an) cast.Add(new Credit(an, Str(a, "character") ?? "", Str(a, "profile_path")));
         }
 
-        return new Detail(runtime, cert, genres, Str(root, "tagline"), logo, imdb, cast);
+        BoxSet? box = null;
+        if (!tv && Obj(root, "belongs_to_collection", out var bc) && bc.TryGetProperty("id", out var bid) && bid.ValueKind == JsonValueKind.Number && Str(bc, "name") is { } bname)
+            box = new BoxSet(bid.GetInt64(), bname, Str(bc, "backdrop_path"));
+
+        return new Detail(runtime, cert, genres, Str(root, "tagline"), logo, imdb, cast, box);
     }
 
     /// <summary>The US certificate if there is one, otherwise the first the list offers.</summary>
