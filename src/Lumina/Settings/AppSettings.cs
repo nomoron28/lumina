@@ -110,6 +110,8 @@ public static class AppSettings
         // the player's on-screen controller is drawn with the app's typeface, which libmpv reads from this folder
         if (System.IO.File.Exists(System.IO.Path.Combine(Lumina.Ui.AppFonts.Folder, "Garet-Book.ttf"))) { all.Add("osd-fonts-dir=" + Lumina.Ui.AppFonts.Folder); all.Add("sub-fonts-dir=" + Lumina.Ui.AppFonts.Folder); }
         else all.Add("script-opts-append=lumina-osc-font=system");      // a build without the typeface: the controller uses Segoe UI
+        // the user's own mpv.conf sits between everything above and the Extra mpv options
+        if (Bool("advanced.userMpvConf")) { var own = Lumina.Player.UserMpvConf.Load(); if (own.Length > 0) all.Add(own); }
         if (Config.MpvOptions.Trim().Length > 0) all.Add(Config.MpvOptions);
         return string.Join("\n", all);
     }
