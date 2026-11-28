@@ -5,6 +5,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- **Several versions of one film**: a 1080p and a 4K copy, or a theatrical and an extended cut, now show as one film once TMDB has matched them. The film's page has a **Version** picker that names each file by its picture (from the file name) and size. Play opens the version you watched last, or the biggest file if you have not watched one. A film counts as watched once any version is, and marking it watched or unwatched covers every version. Files TMDB has not matched stay separate, so two different films with the same name are never merged.
 - **Box sets**: when TMDB puts your films in a set, such as a trilogy, Lumina groups the ones you own in a box set tile in Home's Collections row, in release order. A set needs at least two of your films to show. Right-click a box set tile, **Hide this box set**, to get rid of one; **Show hidden box sets again** is in Settings, Library. After updating, Lumina asks TMDB about your films once more to learn their sets.
 - Sort the library by **File size, largest first** (a show counts all its episodes), in Settings, Interface or the sort menu.
 - **Use my own mpv.conf** (Settings, Advanced, off by default): Lumina also reads `%APPDATA%\mpv\mpv.conf`, after its own settings and before Extra mpv options. Lines that would break the window or controller are skipped and noted in the log.

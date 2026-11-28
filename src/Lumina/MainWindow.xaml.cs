@@ -914,7 +914,11 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
             var start = keep ?? en.Next;
             BuildSeasons(en, start.Season, start);
         }
-        else Select(en, en.Items[0]);
+        else
+        {
+            FillVersions(en, sameTitle && _selEp != null ? en.Items.FirstOrDefault(i => i.Id == _selEp.Id) : null);
+            Select(en, DVersion.SelectedItem is ComboBoxItem { Tag: MediaItem v } ? v : en.Items[0]);
+        }
 
         ShowPage(Page.Details, animate: _page != Page.Details);
         FitHero();
@@ -1041,7 +1045,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
 
     void UpdateDetailActions(LibraryEntry en, MediaItem sel)
     {
-        var all = sel.Watched;
+        var all = en.IsShow ? sel.Watched : en.AllWatched;
         DWatchedIcon.Symbol = all ? Wpf.Ui.Controls.SymbolRegular.EyeOff24 : Wpf.Ui.Controls.SymbolRegular.Eye24;
         var wName = all ? "Mark as unwatched" : "Mark as watched";
         DWatched.ToolTip = wName; System.Windows.Automation.AutomationProperties.SetName(DWatched, wName);
@@ -1058,7 +1062,8 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     void OnDetailsWatched(object sender, RoutedEventArgs e)
     {
         if (_entry is not { } en || _selEp is not { } sel) return;
-        SetWatched(new[] { sel }, !sel.Watched);
+        if (en.IsShow) SetWatched(new[] { sel }, !sel.Watched);
+        else SetWatched(en.Items, !en.AllWatched);   // every version of a film is watched or not together
     }
 
     void OnDetailsFavourite(object sender, RoutedEventArgs e)
@@ -1160,6 +1165,32 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         if (_selEp is { } sel) Play(sel.Path, sel);
         else if (_entry != null) Play(_entry.Next.Path, _entry.Next);
+    }
+
+    /// <summary>The Version picker of a film that is in the library more than once; hidden for one file. Starts on <paramref name="keep"/> or the version Play opens.</summary>
+    void FillVersions(LibraryEntry en, MediaItem? keep)
+    {
+        _filling = true;
+        try
+        {
+            DVersion.Items.Clear();
+            DVersion.Visibility = en.HasVersions ? Visibility.Visible : Visibility.Collapsed;
+            if (!en.HasVersions) return;
+            var pick = keep ?? en.Items[0];
+            foreach (var v in en.Items)
+            {
+                var row = new ComboBoxItem { Content = Versions.Label(v), Tag = v };
+                DVersion.Items.Add(row);
+                if (v.Id == pick.Id) DVersion.SelectedItem = row;
+            }
+        }
+        finally { _filling = false; }
+    }
+
+    void OnVersionSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || _entry is not { } en || DVersion.SelectedItem is not ComboBoxItem { Tag: MediaItem v }) return;
+        Select(en, v);
     }
 
     void OnEpisodeSelected(object sender, SelectionChangedEventArgs e)

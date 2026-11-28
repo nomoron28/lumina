@@ -22,6 +22,8 @@ On a poster: play, **Play with** (Lumina or another player found on your PC, jus
 
 **This is a TV show, not a movie** (and **This is a movie, not a show**) fixes a title filed under the wrong kind. For a film it marks the file's whole folder as a show, numbering episodes from their names or, failing that, in name order; the choice sticks across rescans.
 
+**Several versions of a film.** When you keep a 1080p and a 4K copy (or a theatrical and an extended cut) of the same film, Lumina shows one film once TMDB has matched it. Its page has a **Version** picker that names each file by what its file name says about the picture, plus its size. Play opens the version you watched last, or the biggest file if you have not watched one. The film counts as watched once any version is, and marking it watched or unwatched covers every version. Files TMDB has not matched stay separate.
+
 **Edit metadata...** fixes a wrong match. Search TMDB by hand, see the candidates with their release dates, and pick one (or *None* to use only what the file name says).
 
 ## Details pages
