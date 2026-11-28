@@ -7,6 +7,7 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 ### Added
 - Sort the library by **File size, largest first** (a show counts all its episodes), in Settings, Interface or the sort menu.
 - **Use my own mpv.conf** (Settings, Advanced, off by default): Lumina also reads `%APPDATA%\mpv\mpv.conf`, after its own settings and before Extra mpv options. Lines that would break the window or controller are skipped and noted in the log.
+- Drag the window from the empty space along the top of any page, not just the thin strip above it; double-click there to maximise or restore.
 
 ### Fixed
 - The window now fits small screens: on a 1366×768 screen it used to open taller than the screen, with the title bar out of reach ([#34](https://github.com/nomoron28/lumina/issues/34)). It opens inside the usable area, and a saved size or position that hangs off the screen is pulled back in.
