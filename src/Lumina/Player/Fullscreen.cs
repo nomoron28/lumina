@@ -86,6 +86,15 @@ public sealed class Fullscreen(Window window, UIElement chrome)
         return (m.Left, m.Top, m.Right - m.Left, m.Bottom - m.Top);
     }
 
+    /// <summary>Pixel bounds of the usable area (without the taskbar) of the monitor the window is mostly on.</summary>
+    public static (int X, int Y, int W, int H) MonitorWorkArea(IntPtr hwnd)
+    {
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), ref info);
+        var m = info.Work;
+        return (m.Left, m.Top, m.Right - m.Left, m.Bottom - m.Top);
+    }
+
     public void Toggle()
     {
         if (On) Exit(); else Enter();

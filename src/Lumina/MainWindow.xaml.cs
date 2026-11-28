@@ -496,6 +496,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         ApplyCompactSidebar(AppSettings.Bool("interface.compactSidebar"));
         Topmost = AppSettings.Bool("interface.keepOnTop");
         RestoreWindow();
+        SourceInitialized += (_, _) => FitToScreen();
         _fs = new Fullscreen(this, Bar);
         _taskbarReveal = new Lumina.Windows.TaskbarReveal(this);
         SmoothScroll.Attach(this);
@@ -2981,6 +2982,27 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
         WindowStartupLocation = WindowStartupLocation.Manual;
         Left = r.X; Top = r.Y; Width = r.Width; Height = r.Height;
         if (p[4] == "1") WindowState = WindowState.Maximized;
+    }
+
+    /// <summary>
+    /// Shrink the window (and its minimum size) to the usable area of its monitor and keep it inside it (issue #34).
+    /// Runs once the window has a handle, so the monitor and its scaling are known.
+    /// </summary>
+    void FitToScreen()
+    {
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        if (PresentationSource.FromVisual(this)?.CompositionTarget is not { } target) return;
+        var (x, y, w, h) = Fullscreen.MonitorWorkArea(hwnd);
+        if (w <= 0 || h <= 0) return;
+        var tl = target.TransformFromDevice.Transform(new Point(x, y));
+        var br = target.TransformFromDevice.Transform(new Point(x + w, y + h));
+        var work = new MiniGeometry.Box(tl.X, tl.Y, br.X - tl.X, br.Y - tl.Y);
+        MinWidth = Math.Min(MinWidth, work.Width);
+        MinHeight = Math.Min(MinHeight, work.Height);
+        var center = WindowStartupLocation == WindowStartupLocation.CenterScreen;
+        var b = Lumina.Windows.WindowFit.Fit(new MiniGeometry.Box(Left, Top, Width, Height), work, center);
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = b.Left; Top = b.Top; Width = b.Width; Height = b.Height;
     }
 
     void SendKey(string name)
