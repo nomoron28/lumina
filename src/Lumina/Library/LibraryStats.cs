@@ -9,9 +9,11 @@ public record LibraryStats(int Films, int Episodes, long Bytes)
     public static LibraryStats From(IEnumerable<MediaItem> items)
     {
         int films = 0, eps = 0; long bytes = 0;
+        var matchedFilms = new HashSet<long>();   // files TMDB matched to the same film are versions of one film
         foreach (var i in items)
         {
-            if (i.Kind == "show") eps++; else films++;
+            if (i.Kind == "show") eps++;
+            else if (i.TmdbId <= 0 || matchedFilms.Add(i.TmdbId)) films++;
             bytes += Math.Max(0, i.Size);
         }
         return new LibraryStats(films, eps, bytes);

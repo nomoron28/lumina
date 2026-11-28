@@ -459,7 +459,10 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock x:Name="DFile" Style="{StaticResource Lumina.Text.Caption}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ComboBox x:Name="DVersion" MinWidth="260" Margin="0,0,16,0" Visibility="Collapsed" AutomationProperties.Name="Version" SelectionChanged="OnVersionSelected" />
+                            <TextBlock x:Name="DFile" Style="{StaticResource Lumina.Text.Caption}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        </StackPanel>
                         <TextBlock x:Name="DSpecs" Grid.Column="1" Style="{StaticResource Lumina.Text.Caption}" Margin="24,0,0,0" VerticalAlignment="Center" />
                     </Grid>
                 </StackPanel>

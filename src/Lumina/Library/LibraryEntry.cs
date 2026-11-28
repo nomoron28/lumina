@@ -13,10 +13,16 @@ public class LibraryEntry
     public string? Overview { get; init; }
     public double? Rating { get; init; }
     public int? Year { get; init; }
-    /// <summary>Episodes ordered by season then episode, or the single movie file.</summary>
+    /// <summary>
+    /// Episodes ordered by season then episode, or the movie's files: one, or several versions of the same film (a 1080p and a 4K copy)
+    /// with the one Play opens first (see <see cref="Versions.Order"/>).
+    /// </summary>
     public List<MediaItem> Items { get; init; } = new();
 
     public bool IsShow => Kind == "show";
+
+    /// <summary>A film that is in the library more than once.</summary>
+    public bool HasVersions => !IsShow && Items.Count > 1;
 
     /// <summary>Genre names, from the title's TMDB details.</summary>
     public IReadOnlyList<string> Genres { get; init; } = Array.Empty<string>();
@@ -31,9 +37,16 @@ public class LibraryEntry
     public long Size => Items.Sum(i => i.Size);
     public long AddedAt => Items.Count == 0 ? 0 : Items.Max(i => i.AddedAt);
     public long PlayedAt => Items.Count == 0 ? 0 : Items.Max(i => i.PlayedAt);
-    public bool AllWatched => Items.Count > 0 && Items.All(i => i.Watched);
-    public bool AnyUnwatched => Items.Any(i => !i.Watched);
-    public bool InProgress => Items.Any(i => i.CanResume);
+    /// <summary>A show: every episode watched. A film: any of its versions watched.</summary>
+    public bool AllWatched => Items.Count > 0 && (IsShow ? Items.All(i => i.Watched) : Items.Any(i => i.Watched));
+    public bool AnyUnwatched => IsShow ? Items.Any(i => !i.Watched) : Items.Count > 0 && !Items.Any(i => i.Watched);
+    public bool InProgress => IsShow ? Items.Any(i => i.CanResume) : Resume != null;
+
+    /// <summary>
+    /// A film's version to pick up where it was left: the first (last watched) one that is partway through, unless a version has been watched to
+    /// the end, which makes the film watched.
+    /// </summary>
+    MediaItem? Resume => Items.Any(i => i.Watched) ? null : Items.FirstOrDefault(i => i.CanResume);
 
     /// <summary>
     /// What "Continue watching" should open, or null if this entry does not belong there.
@@ -44,7 +57,7 @@ public class LibraryEntry
         get
         {
             if (Items.Count == 0) return null;
-            if (!IsShow) return Items[0].CanResume ? Items[0] : null;
+            if (!IsShow) return Resume;
             var started = Items.Any(i => i.Watched || i.CanResume);
             if (!started) return null;
             var next = Next;
@@ -91,7 +104,7 @@ public class LibraryEntry
         : Year?.ToString() ?? "";
 
     /// <summary>Movie: how far through. Show: share of episodes watched.</summary>
-    public double Percent => Items.Count == 0 ? 0 : IsShow ? Items.Count(i => i.Watched) * 100.0 / Items.Count : Items[0].Percent;
+    public double Percent => Items.Count == 0 ? 0 : IsShow ? Items.Count(i => i.Watched) * 100.0 / Items.Count : (Resume ?? Items[0]).Percent;
 
     /// <summary>The line under the title on the details page.</summary>
     public string Meta => string.Join("  ·  ", new[]
@@ -110,7 +123,7 @@ public class LibraryEntry
     {
         get
         {
-            if (!IsShow) return Items[0];
+            if (!IsShow) return Resume ?? Items[0];
             var inProgress = Items.FirstOrDefault(i => i.CanResume);
             if (inProgress != null) return inProgress;
             var lastWatched = Items.FindLastIndex(i => i.Watched);
@@ -134,14 +147,19 @@ public class LibraryEntry
     public static List<LibraryEntry> Build(IEnumerable<MediaItem> items)
     {
         var entries = new List<LibraryEntry>();
-        foreach (var g in items.Where(i => i.Kind == "movie").Select(i => new[] { i }).Concat(
-                     items.Where(i => i.Kind == "show").GroupBy(i => i.TmdbId > 0 ? "t" + i.TmdbId : "n" + i.Title.ToLowerInvariant()).Select(g => g.ToArray())))
+        // Files TMDB matched to the same film are versions of it. A film nobody matched stays one file, because two files that merely
+        // share a name could be different films.
+        var movies = items.Where(i => i.Kind == "movie").ToList();
+        var films = movies.Where(i => i.TmdbId > 0).GroupBy(i => i.TmdbId).Select(g => g.ToArray())
+            .Concat(movies.Where(i => i.TmdbId <= 0).Select(i => new[] { i }));
+        foreach (var g in films.Concat(items.Where(i => i.Kind == "show").GroupBy(i => i.TmdbId > 0 ? "t" + i.TmdbId : "n" + i.Title.ToLowerInvariant()).Select(g => g.ToArray())))
         {
             var first = g[0];
-            var ordered = g.OrderBy(i => i.Season ?? 0).ThenBy(i => i.Episode ?? 0).ToList();
+            var ordered = first.Kind == "movie" ? Versions.Order(g) : g.OrderBy(i => i.Season ?? 0).ThenBy(i => i.Episode ?? 0).ToList();
+            first = ordered[0];
             entries.Add(new LibraryEntry
             {
-                Key = first.Kind == "movie" ? "movie:" + first.Id : "show:" + (first.TmdbId > 0 ? first.TmdbId.ToString() : first.Title.ToLowerInvariant()),
+                Key = first.Kind == "movie" ? "movie:" + ordered.Min(i => i.Id) : "show:" + (first.TmdbId > 0 ? first.TmdbId.ToString() : first.Title.ToLowerInvariant()),
                 Kind = first.Kind,
                 Title = first.Title,
                 TmdbId = first.TmdbId,
