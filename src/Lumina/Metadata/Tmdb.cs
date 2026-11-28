@@ -10,10 +10,12 @@ namespace Lumina.Metadata;
 /// <summary>TMDB lookups: match titles, fetch episode names, cache posters under %LOCALAPPDATA%\Lumina\art.</summary>
 public static class Tmdb
 {
-    static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
+    // A network that silently drops a host never refuses the connection, so give up connecting after 10 s and let GetJson try the other host.
+    static readonly HttpClient Http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(10) }) { Timeout = TimeSpan.FromSeconds(30) };
     // LUMINA_TMDB_API and LUMINA_TMDB_IMG point tests at a local fake server.
     // Some networks block api.themoviedb.org (the connection is reset) but let TMDB's own alias api.tmdb.org through: try the other one when a host cannot be reached.
-    static readonly string[] Hosts = { "https://api.themoviedb.org/3/", "https://api.tmdb.org/3/" };
+    // LUMINA_TMDB_HOSTS (comma separated) and LUMINA_TMDB_TIMEOUT_MS let tests exercise the switching without waiting 30 s.
+    static string[] Hosts => Environment.GetEnvironmentVariable("LUMINA_TMDB_HOSTS")?.Split(',') ?? new[] { "https://api.themoviedb.org/3/", "https://api.tmdb.org/3/" };
     static int _host;
     static string Api => Environment.GetEnvironmentVariable("LUMINA_TMDB_API") ?? Hosts[_host];
     static string ImgBase => Environment.GetEnvironmentVariable("LUMINA_TMDB_IMG") ?? "https://image.tmdb.org/t/p/";
@@ -144,10 +146,11 @@ public static class Tmdb
             using var req = new HttpRequestMessage(HttpMethod.Get, Api + tail);
             if (bearer) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
             HttpResponseMessage res;
-            try { res = await Http.SendAsync(req); }
-            catch (HttpRequestException) when (Environment.GetEnvironmentVariable("LUMINA_TMDB_API") == null && switched < Hosts.Length - 1)
+            using var cts = new CancellationTokenSource(int.TryParse(Environment.GetEnvironmentVariable("LUMINA_TMDB_TIMEOUT_MS"), out var ms) ? ms : 30000);
+            try { res = await Http.SendAsync(req, cts.Token); }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException && Environment.GetEnvironmentVariable("LUMINA_TMDB_API") == null && switched < Hosts.Length - 1)
             {
-                _host = (_host + 1) % Hosts.Length; switched++; attempt--; continue;   // could not connect at all: use the other host from now on
+                _host = (_host + 1) % Hosts.Length; switched++; attempt--; continue;   // could not connect, or no answer in time: use the other host from now on
             }
             using var _ = res;
             if (res.StatusCode == HttpStatusCode.TooManyRequests && attempt == 0)
