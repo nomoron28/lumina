@@ -2991,7 +2991,7 @@ public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     void FitToScreen()
     {
         var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-        if (PresentationSource.FromVisual(this)?.CompositionTarget is not { } target) return;
+        if (System.Windows.Interop.HwndSource.FromHwnd(hwnd)?.CompositionTarget is not { } target) return;
         var (x, y, w, h) = Fullscreen.MonitorWorkArea(hwnd);
         if (w <= 0 || h <= 0) return;
         var tl = target.TransformFromDevice.Transform(new Point(x, y));
