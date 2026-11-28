@@ -49,6 +49,8 @@ The **settings panel** (gear) has four tabs:
 
 **Up Next.** Where an episode's credits start (or 30 seconds before the end), a card shows the next episode and counts down 10 seconds of playback; pausing holds it. **Play now** skips the wait and **Cancel** stays on this episode. Set **Settings, Playback, After an episode** to *Stop and stay* to turn it off.
 
+Already have an mpv setup? Turn on **Settings, Advanced, Use my own mpv.conf** and Lumina also reads `%APPDATA%\mpv\mpv.conf` the next time it starts. Lines about windows, scripts, the controller and `[profile]` sections are skipped (see the log); **Extra mpv options** still win.
+
 Controller styles (**Settings, Interface**): **Modern** (default), VLC (a flat bar under the picture), Classic, and a Floating pill. The set of buttons can be customised.
 
 ### Subtitles

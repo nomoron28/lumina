@@ -314,6 +314,8 @@ public static class Catalog
         Button("advanced.about", "advanced", "Support", "About Lumina", "show-about", "Version, where your data is kept, and what the player is built on."),
         Button("advanced.report", "advanced", "Support", "Report a problem", "report-problem", "Opens a new GitHub issue with your Lumina and Windows versions filled in, and copies the end of today's log (file paths removed) for you to paste. Nothing is sent until you submit it."),
         Button("advanced.logs", "advanced", "Support", "Log files", "open-logs", "Opens the folder with Lumina's log. Attach today's file when reporting a problem."),
+        Toggle("advanced.userMpvConf", "advanced", "Player", "Use my own mpv.conf", false,
+            "Also reads %APPDATA%\\mpv\\mpv.conf if it exists, after Lumina's own settings and before Extra mpv options. Lines that would break Lumina's window or controller (osc, scripts, fullscreen, window size and similar, and [profile] sections) are skipped and noted in the log. Applies the next time Lumina starts."),
         Text("mpvOptions", "advanced", "Player", "Extra mpv options", "",
             "One key=value per line. These win over everything above. Lines mpv rejects are skipped and named on screen.",
             "hwdec=auto-safe", kind: Kind.Multiline),
