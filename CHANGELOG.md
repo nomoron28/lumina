@@ -4,6 +4,9 @@ All notable changes to Lumina are listed here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- Sort the library by **File size, largest first** (a show counts all its episodes), in Settings, Interface or the sort menu.
+
 ### Fixed
 - The window now fits small screens: on a 1366×768 screen it used to open taller than the screen, with the title bar out of reach ([#34](https://github.com/nomoron28/lumina/issues/34)). It opens inside the usable area, and a saved size or position that hangs off the screen is pulled back in.
 - **No ratings when TMDB is silently blocked**: if a network just drops api.themoviedb.org without refusing the connection, Lumina now gives up after a few seconds and tries api.tmdb.org instead of waiting 30 seconds and reporting "TMDB timed out".

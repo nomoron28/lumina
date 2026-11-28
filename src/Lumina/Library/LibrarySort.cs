@@ -2,19 +2,19 @@ using Lumina.Settings;
 
 namespace Lumina.Library;
 
-public enum SortKey { Title, Added, Watched, Year, Rating }
+public enum SortKey { Title, Added, Watched, Year, Rating, Size }
 
 public static class LibrarySort
 {
     public static readonly Choice[] Choices =
     {
         new("title", "A to Z"), new("added", "Recently added"), new("watched", "Recently watched"),
-        new("year", "Year, newest first"), new("rating", "Rating, highest first"),
+        new("year", "Year, newest first"), new("rating", "Rating, highest first"), new("size", "File size, largest first"),
     };
 
     public static SortKey Parse(string? value) => value switch
     {
-        "added" => SortKey.Added, "watched" => SortKey.Watched, "year" => SortKey.Year, "rating" => SortKey.Rating, _ => SortKey.Title,
+        "added" => SortKey.Added, "watched" => SortKey.Watched, "year" => SortKey.Year, "rating" => SortKey.Rating, "size" => SortKey.Size, _ => SortKey.Title,
     };
 
     public static string Name(SortKey k) => k.ToString().ToLowerInvariant();
@@ -32,6 +32,7 @@ public static class LibrarySort
             SortKey.Watched => entries.OrderByDescending(e => e.PlayedAt > 0).ThenByDescending(e => e.PlayedAt).ThenBy(e => e.Title, byTitle).ToList(),
             SortKey.Year => entries.OrderByDescending(e => e.Year.HasValue).ThenByDescending(e => e.Year ?? 0).ThenBy(e => e.Title, byTitle).ToList(),
             SortKey.Rating => entries.OrderByDescending(e => e.Rating.HasValue).ThenByDescending(e => e.Rating ?? 0).ThenBy(e => e.Title, byTitle).ToList(),
+            SortKey.Size => entries.OrderByDescending(e => e.Size).ThenBy(e => e.Title, byTitle).ToList(),
             _ => entries.OrderBy(e => e.Title, byTitle).ToList(),
         };
     }

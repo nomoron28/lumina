@@ -27,6 +27,8 @@ public class LibraryEntry
     /// <summary>TMDB rating for the list view, empty when there is none.</summary>
     public string RatingText => Rating is { } r and > 0 ? $"TMDB {r:0.0}" : "";
 
+    /// <summary>Total file size on disk; a show is all its episodes.</summary>
+    public long Size => Items.Sum(i => i.Size);
     public long AddedAt => Items.Count == 0 ? 0 : Items.Max(i => i.AddedAt);
     public long PlayedAt => Items.Count == 0 ? 0 : Items.Max(i => i.PlayedAt);
     public bool AllWatched => Items.Count > 0 && Items.All(i => i.Watched);
